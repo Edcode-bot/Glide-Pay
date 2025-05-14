@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Axe App</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: #1c1c2b;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      padding-bottom: 100px;
+    }
+    .navbar-custom {
+      background: #1c1c2b;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .wallet-card {
+      background: linear-gradient(135deg, #ff8a00, #e52e71);
+      border-radius: 20px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      color: #fff;
+    }
+    .currency-card {
+      background: #2d2d44;
+      padding: 1rem;
+      margin: 0.5rem;
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      flex: 1;
+    }
+    .options-card {
+      background: #2d2d44;
+      border-radius: 15px;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+    .option-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      text-align: center;
+    }
+    .option-grid a div {
+      background: #3c3c5a;
+      padding: 1rem;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 0.9rem;
+    }
+    .history-card {
+      background: #2d2d44;
+      border-radius: 15px;
+      padding: 1rem;
+      color: #ccc;
+    }
+    .nav-bottom {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #2d2d44;
+      border-top: 1px solid #444;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      height: 60px;
+      z-index: 1000;
+    }
+    .nav-bottom i {
+      font-size: 1.4rem;
+      color: #ffa726;
+    }
+    .center-btn {
+      background: #ffa726;
+      color: #000;
+      border-radius: 50%;
+      width: 55px;
+      height: 55px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: -25px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    #cryptoPopup {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #2d2d44;
+      border-top: 1px solid #555;
+      padding: 1rem;
+      color: #fff;
+      z-index: 2000;
+    }
+    #cryptoPopup button {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar-custom">
+    <span>Hello <span id="username">User</span> 👋</span>
+    <i class="fas fa-bell"></i>
+  </div>
+
+  <div class="container">
+    <div class="wallet-card">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="small">Wallet Balance</div>
+          <h2>UGX <span id="balance">0</span></h2>
+        </div>
+        <div class="d-flex flex-column gap-2">
+          <button class="btn btn-light btn-sm" onclick="location.href='add-cash.html'">Add Cash</button>
+          <button class="btn btn-dark btn-sm" onclick="location.href='withdraw.html'">Withdraw</button>
+        </div>
+      </div>
+      <div class="d-flex justify-content-between mt-4">
+        <div class="currency-card" onclick="showPopup('USDT')">0.01<br><strong>USDT</strong></div>
+        <div class="currency-card" onclick="showPopup('USDC')">&lt;0.01<br><strong>USDC</strong></div>
+        <div class="currency-card" onclick="showPopup('cUSD')">&lt;0.01<br><strong>cUSD</strong></div>
+      </div>
+    </div>
+
+    <div class="options-card">
+      <div class="option-grid">
+        <a href="rent.html"><div><i class="fas fa-home"></i><br>Housing</div></a>
+        <a href="airtime.html"><div><i class="fas fa-mobile-alt"></i><br>Airtime</div></a>
+        <a href="bills.html"><div><i class="fas fa-bolt"></i><br>Electricity</div></a>
+        <a href="bills.html"><div><i class="fas fa-tint"></i><br>Water</div></a>
+        <a href="send.html"><div><i class="fas fa-paper-plane"></i><br>Send</div></a>
+        <a href="donate.html"><div><i class="fas fa-heart"></i><br>Donations</div></a>
+      </div>
+    </div>
+
+    <div class="history-card">
+      <h6>Transaction History</h6>
+      <div id="history-list"><small>Loading...</small></div>
+    </div>
+  </div>
+
+  <div class="nav-bottom">
+    <a href="#"><i class="fas fa-home"></i></a>
+    <a href="/chat" class="center-btn"><i class="fas fa-comment-dots"></i></a>
+    <a href="invest.html"><i class="fas fa-chart-line"></i></a>
+  </div>
+
+  <div id="cryptoPopup">
+    <h5 class="mb-3">Choose Action</h5>
+    <button class="btn btn-outline-success" onclick="openDeposit()">Deposit</button>
+    <button class="btn btn-outline-warning" onclick="openTransfer()">Transfer</button>
+    <button class="btn btn-outline-light" onclick="closePopup()">Cancel</button>
+  </div>
+
+  <script>
+    let selectedCurrency = "";
+    function showPopup(currency) {
+      selectedCurrency = currency;
+      document.getElementById("cryptoPopup").style.display = "block";
+    }
+    function closePopup() {
+      document.getElementById("cryptoPopup").style.display = "none";
+    }
+    function openDeposit() {
+      window.location.href = "wallet-deposit.html?currency=" + selectedCurrency;
+    }
+    function openTransfer() {
+      window.location.href = "wallet-transfer.html?currency=" + selectedCurrency;
+    }
+
+    fetch('/balance')
+      .then(res => res.json())
+      .then(data => document.getElementById('balance').innerText = data.balance);
+
+    fetch('/user')
+      .then(res => res.json())
+      .then(data => document.getElementById('username').innerText = data.name || 'User');
+
+    fetch('/transactions')
+      .then(res => res.json())
+      .then(txs => {
+        const history = document.getElementById('history-list');
+        history.innerHTML = '';
+        txs.forEach(tx => {
+          const item = document.createElement('div');
+          item.className = 'd-flex justify-content-between border-bottom py-1';
+          item.innerHTML = `<span>${tx.type}</span><span>${tx.amount}</span>`;
+          history.appendChild(item);
+        });
+      });
+  </script>
+</body>
+</html>

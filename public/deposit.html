@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head><title>Deposit</title></head>
+<body>
+  <div id="info"></div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const currency = params.get("currency") || "USDT";
+    const info = {
+      USDT: {
+        name: "USDT pocket",
+        value: "0.01",
+        description: "Tether (USDT) is a stablecoin issued by Tether backed by USD."
+      },
+      USDC: {
+        name: "USDC pocket",
+        value: "<0.01",
+        description: "USD Coin (USDC) is a stablecoin pegged to the US dollar issued by Circle."
+      },
+      cUSD: {
+        name: "cUSD pocket",
+        value: "<0.01",
+        description: "Celo Dollar (cUSD) is a stablecoin on the Celo network."
+      }
+    };
+    const { name, value, description } = info[currency];
+    document.getElementById("info").innerHTML = `
+      <h2>${name}</h2>
+      <p>Balance: ${value}</p>
+      <p>${description}</p>
+      <button>Deposit</button>
+      <button>Withdraw</button>
+    `;
+  </script>
+</body>
+</html>
