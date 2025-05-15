@@ -104,6 +104,23 @@
       width: 100%;
       margin-bottom: 10px;
     }
+    .option-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  text-align: center;
+}
+.option-card {
+  background: #1c1b3b;
+  border-radius: 16px;
+  color: white;
+  box-shadow: 0 0 10px rgba(255, 165, 0, 0.2);
+  text-decoration: none;
+}
+.option-card:hover {
+  background: #ff7e5f;
+  color: white;
+}
   </style>
 </head>
 <body>
@@ -131,22 +148,39 @@
       </div>
     </div>
 
+<div class="text-center my-3">
+  <button class="btn btn-warning" onclick="startDivviReferral()">Claim Referral Rewards</button>
+</div>
+    
     <div class="options-card">
+      <h5 class="text-white mb-3">Services</h5>
       <div class="option-grid">
-        <a href="rent.html"><div><i class="fas fa-home"></i><br>Housing</div></a>
-        <a href="airtime.html"><div><i class="fas fa-mobile-alt"></i><br>Airtime</div></a>
-        <a href="bills.html"><div><i class="fas fa-bolt"></i><br>Electricity</div></a>
-        <a href="bills.html"><div><i class="fas fa-tint"></i><br>Water</div></a>
-        <a href="send.html"><div><i class="fas fa-paper-plane"></i><br>Send</div></a>
-        <a href="donate.html"><div><i class="fas fa-heart"></i><br>Donations</div></a>
-      </div>
-    </div>
 
-    <div class="history-card">
-      <h6>Transaction History</h6>
-      <div id="history-list"><small>Loading...</small></div>
-    </div>
-  </div>
+        <a href="https://glidepay.app/rent" target="_blank" class="option-card">
+          <i class="fas fa-home"></i><br>Housing
+        </a>
+
+        <a href="https://www.airtel.ug/selfcare" target="_blank" class="option-card">
+          <i class="fas fa-mobile-alt"></i><br>Airtime
+        </a>
+
+        <a href="https://www.payway.ug/service/umeme" target="_blank" class="option-card">
+          <i class="fas fa-bolt"></i><br>Electricity
+        </a>
+
+        <a href="https://www.payway.ug/service/nwsc" target="_blank" class="option-card">
+          <i class="fas fa-tint"></i><br>Water
+        </a>
+
+        <a href="https://fonkwallet.com/send" target="_blank" class="option-card">
+          <i class="fas fa-paper-plane"></i><br>Send
+        </a>
+
+        <a href="https://claim.minipay.xyz/donate" target="_blank" class="option-card">
+          <i class="fas fa-heart"></i><br>Donations
+        </a>
+
+      </div>
 
   <div class="nav-bottom">
     <a href="#"><i class="fas fa-home"></i></a>
@@ -198,5 +232,43 @@
         });
       });
   </script>
+      <script type="module">
+  import { getDataSuffix, submitReferral } from 'https://cdn.jsdelivr.net/npm/@divvi/referral-sdk/+esm';
+  import { createWalletClient, custom } from 'https://esm.sh/viem';
+  import { mainnet } from 'https://esm.sh/viem/chains';
+
+  window.startDivviReferral = async function () {
+    try {
+      const walletClient = createWalletClient({
+        chain: mainnet,
+        transport: custom(window.ethereum),
+      });
+
+      const [account] = await walletClient.getAddresses();
+
+      const dataSuffix = getDataSuffix({
+        consumer: '0xe38a456433fff7814e40998cf0cbbbd2c885b513',
+        providers: [], // Add reward campaign addresses here if available
+      });
+
+      // Replace these with real values once GlidePay does on-chain transactions
+      const txHash = await walletClient.sendTransaction({
+        account,
+        to: '0x0000000000000000000000000000000000000000', // Dummy placeholder
+        data: '0x' + dataSuffix, // Simulated transaction
+        value: 0n,
+      });
+
+      const chainId = await walletClient.getChainId();
+
+      await submitReferral({ txHash, chainId });
+
+      alert('Referral submitted! You’ll be eligible for rewards.');
+    } catch (err) {
+      console.error('Referral failed:', err);
+      alert('Error submitting referral. Please ensure you’re connected with MetaMask or Celo Wallet.');
+    }
+  }
+      </script>
 </body>
 </html>

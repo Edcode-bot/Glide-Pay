@@ -83,14 +83,22 @@ app.get('/chat', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/chat.html'));
 });
 
+app.get('/user-info', async (req, res) => {
+  if (!req.session.userId) return res.status(401).json({});
+  const user = await User.findById(req.session.userId);
+  res.json({ name: user.name, email: user.email });
+});
+
 // AUTH
 app.post('/register', async (req, res) => {
-  const { name, phone, password } = req.body;
+  const { name, email, phone, password } = req.body;
+
   try {
-    const existingUser = await User.findOne({ phone });
+    const existingUser = await User.findOne({ email });
     if (existingUser) return res.send('User already exists.');
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ name, phone, password: hashedPassword });
+    const newUser = new User({ name, phone, email, password: hashedPassword });
     await newUser.save();
     res.send('Registration successful.');
   } catch (err) {
@@ -229,6 +237,23 @@ app.post('/transfer-token', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send('Transfer failed');
+  }
+});
+
+app.get('/user-profile', async (req, res) => {
+  if (!req.session.userId) return res.status(401).json({ error: 'Unauthorized' });
+
+  try {
+    const user = await User.findById(req.session.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    res.json({
+      name: user.name || 'User',
+      email: user.email || 'user@example.com'
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch profile' });
   }
 });
 
