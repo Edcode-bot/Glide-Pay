@@ -233,42 +233,54 @@
       });
   </script>
       <script type="module">
-  import { getDataSuffix, submitReferral } from 'https://cdn.jsdelivr.net/npm/@divvi/referral-sdk/+esm';
-  import { createWalletClient, custom } from 'https://esm.sh/viem';
-  import { mainnet } from 'https://esm.sh/viem/chains';
+        import { getDataSuffix, submitReferral } from 'https://cdn.jsdelivr.net/npm/@divvi/referral-sdk/+esm';
+        import { createWalletClient, custom } from 'https://esm.sh/viem';
+        import { mainnet } from 'https://esm.sh/viem/chains';
 
-  window.startDivviReferral = async function () {
-    try {
-      const walletClient = createWalletClient({
-        chain: mainnet,
-        transport: custom(window.ethereum),
-      });
+        window.startDivviReferral = async function () {
+          try {
+            if (!window.ethereum) {
+              alert('No wallet found. Please install MetaMask or Celo Extension Wallet.');
+              return;
+            }
 
-      const [account] = await walletClient.getAddresses();
+            // Request account connection FIRST
+            const addresses = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            if (!addresses || addresses.length === 0) {
+              alert('Wallet not connected. Please try again.');
+              return;
+            }
 
-      const dataSuffix = getDataSuffix({
-        consumer: '0xe38a456433fff7814e40998cf0cbbbd2c885b513',
-        providers: [], // Add reward campaign addresses here if available
-      });
+            const account = addresses[0]; // MetaMask address
 
-      // Replace these with real values once GlidePay does on-chain transactions
-      const txHash = await walletClient.sendTransaction({
-        account,
-        to: '0x0000000000000000000000000000000000000000', // Dummy placeholder
-        data: '0x' + dataSuffix, // Simulated transaction
-        value: 0n,
-      });
+            const walletClient = createWalletClient({
+              chain: mainnet,
+              transport: custom(window.ethereum),
+              account
+            });
 
-      const chainId = await walletClient.getChainId();
+            const dataSuffix = getDataSuffix({
+              consumer: '0xe38a456433fff7814e40998cf0cbbbd2c885b513',
+              providers: []
+            });
 
-      await submitReferral({ txHash, chainId });
+            const txHash = await walletClient.sendTransaction({
+              account,
+              to: '0x0000000000000000000000000000000000000000', // Placeholder for now
+              data: '0x' + dataSuffix,
+              value: 0n
+            });
 
-      alert('Referral submitted! You’ll be eligible for rewards.');
-    } catch (err) {
-      console.error('Referral failed:', err);
-      alert('Error submitting referral. Please ensure you’re connected with MetaMask or Celo Wallet.');
-    }
-  }
+            const chainId = await walletClient.getChainId();
+
+            await submitReferral({ txHash, chainId });
+
+            alert('Referral submitted successfully!');
+          } catch (err) {
+            console.error('Referral failed:', err);
+            alert('Error submitting referral. Please ensure your wallet is connected and try again.');
+          }
+        };
       </script>
 </body>
 </html>
