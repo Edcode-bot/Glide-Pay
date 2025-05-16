@@ -235,50 +235,53 @@
       <script type="module">
         import { getDataSuffix, submitReferral } from 'https://cdn.jsdelivr.net/npm/@divvi/referral-sdk/+esm';
         import { createWalletClient, custom } from 'https://esm.sh/viem';
-        import { mainnet } from 'https://esm.sh/viem/chains';
+        import { celo } from 'https://esm.sh/viem/chains'; // Use Celo instead of Ethereum
 
         window.startDivviReferral = async function () {
           try {
             if (!window.ethereum) {
-              alert('No wallet found. Please install MetaMask or Celo Extension Wallet.');
+              alert('Wallet not found. Please install MetaMask or Celo Extension Wallet.');
               return;
             }
 
-            // Request account connection FIRST
+            // Request connection
             const addresses = await window.ethereum.request({ method: 'eth_requestAccounts' });
             if (!addresses || addresses.length === 0) {
-              alert('Wallet not connected. Please try again.');
+              alert('Wallet not connected.');
               return;
             }
 
-            const account = addresses[0]; // MetaMask address
+            const account = addresses[0];
 
+            // Create wallet client using Celo
             const walletClient = createWalletClient({
-              chain: mainnet,
+              chain: celo,
               transport: custom(window.ethereum),
               account
             });
 
             const dataSuffix = getDataSuffix({
               consumer: '0xe38a456433fff7814e40998cf0cbbbd2c885b513',
-              providers: []
+              providers: [] // Add campaign provider IDs here if available
             });
 
             const txHash = await walletClient.sendTransaction({
               account,
-              to: '0x0000000000000000000000000000000000000000', // Placeholder for now
+              to: '0x0000000000000000000000000000000000000000', // Placeholder or actual smart contract
               data: '0x' + dataSuffix,
               value: 0n
             });
 
             const chainId = await walletClient.getChainId();
+            console.log("Referral transaction sent. Hash:", txHash);
+            console.log("Chain ID:", chainId);
 
             await submitReferral({ txHash, chainId });
 
             alert('Referral submitted successfully!');
           } catch (err) {
             console.error('Referral failed:', err);
-            alert('Error submitting referral. Please ensure your wallet is connected and try again.');
+            alert('Error submitting referral. Please ensure your wallet is connected to Celo.');
           }
         };
       </script>
