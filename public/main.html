@@ -148,9 +148,9 @@
       </div>
     </div>
 
-<div class="text-center my-3">
-  <button class="btn btn-warning" onclick="startDivviReferral()">Claim Referral Rewards</button>
-</div>
+    <div class="text-center my-4">
+      <button class="btn btn-warning" onclick="startDivviReferral()">Claim Referral Rewards</button>
+    </div>
     
     <div class="options-card">
       <h5 class="text-white mb-3">Services</h5>
@@ -195,16 +195,6 @@
     <button class="btn btn-outline-light" onclick="closePopup()">Cancel</button>
   </div>
 
-<!-- Toast Container -->
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
-  <div id="toastDivvi" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
-    <div class="d-flex">
-      <div id="toastBody" class="toast-body">Success!</div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-    </div>
-  </div>
-</div>
-      
   <script>
     let selectedCurrency = "";
     function showPopup(currency) {
@@ -242,6 +232,17 @@
         });
       });
   </script>
+      <!-- Toast Container -->
+      <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+        <div id="toastDivvi" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="d-flex">
+            <div id="toastBody" class="toast-body">Success!</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Divvi Integration -->
       <script type="module">
         import { getDataSuffix, submitReferral } from 'https://cdn.jsdelivr.net/npm/@divvi/referral-sdk/+esm';
         import { createWalletClient, custom } from 'https://esm.sh/viem';
@@ -259,7 +260,6 @@
           toast.show();
         }
 
-        // Divvi logic
         window.startDivviReferral = async function () {
           try {
             if (!window.ethereum) {
@@ -283,29 +283,35 @@
 
             const dataSuffix = getDataSuffix({
               consumer: '0xe38a456433fff7814e40998cf0cbbbd2c885b513',
-              providers: [] // Add any provider campaign addresses if needed
+              providers: [] // Leave empty for now (no active campaigns)
             });
 
             const txHash = await walletClient.sendTransaction({
               account,
-              to: '0x0000000000000000000000000000000000000000', // Dummy or real target
+              to: '0x0000000000000000000000000000000000000000',
               data: '0x' + dataSuffix,
               value: 0n
             });
 
             const chainId = await walletClient.getChainId();
+            console.log("Referral transaction sent. Hash:", txHash);
+            console.log("Chain ID:", chainId);
 
             try {
               await submitReferral({ txHash, chainId });
-              showToast('Referral submitted successfully!');
+              showToast('Referral submitted successfully!', 'success');
             } catch (referralError) {
-              console.error('submitReferral failed:', referralError);
-              showToast('Referral sent, but tracking failed.', 'warning');
+              console.warn('submitReferral failed:', referralError);
+              if (referralError.message.includes('No providers found')) {
+                showToast('Referral already submitted or no active campaign.', 'info');
+              } else {
+                showToast('Referral sent, but tracking failed.', 'warning');
+              }
             }
 
           } catch (err) {
             console.error('Referral failed:', err);
-            showToast('Referral failed. Check wallet and network.', 'danger');
+            showToast('Transaction failed. Check wallet/network.', 'danger');
           }
         };
       </script>
