@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@divvi/referral-sdk": "^1.0.0",
+    "@selfxyz/core": "^0.0.25",
     "@types/node": "^22.13.11",
     "bcrypt": "^6.0.0",
     "express": "^5.1.0",
