@@ -195,6 +195,16 @@
     <button class="btn btn-outline-light" onclick="closePopup()">Cancel</button>
   </div>
 
+<!-- Toast Container -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+  <div id="toastDivvi" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div id="toastBody" class="toast-body">Success!</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+      
   <script>
     let selectedCurrency = "";
     function showPopup(currency) {
@@ -235,25 +245,36 @@
       <script type="module">
         import { getDataSuffix, submitReferral } from 'https://cdn.jsdelivr.net/npm/@divvi/referral-sdk/+esm';
         import { createWalletClient, custom } from 'https://esm.sh/viem';
-        import { celo } from 'https://esm.sh/viem/chains'; // Use Celo instead of Ethereum
+        import { celo } from 'https://esm.sh/viem/chains';
 
+        // Toast helper
+        function showToast(message, type = 'success') {
+          const toastEl = document.getElementById('toastDivvi');
+          const toastBody = document.getElementById('toastBody');
+
+          toastBody.textContent = message;
+          toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+
+          const toast = new bootstrap.Toast(toastEl);
+          toast.show();
+        }
+
+        // Divvi logic
         window.startDivviReferral = async function () {
           try {
             if (!window.ethereum) {
-              alert('Wallet not found. Please install MetaMask or Celo Extension Wallet.');
+              showToast('Wallet not found. Please install MetaMask or Celo Extension Wallet.', 'danger');
               return;
             }
 
-            // Request connection
             const addresses = await window.ethereum.request({ method: 'eth_requestAccounts' });
             if (!addresses || addresses.length === 0) {
-              alert('Wallet not connected.');
+              showToast('Wallet not connected.', 'danger');
               return;
             }
 
             const account = addresses[0];
 
-            // Create wallet client using Celo
             const walletClient = createWalletClient({
               chain: celo,
               transport: custom(window.ethereum),
@@ -262,26 +283,29 @@
 
             const dataSuffix = getDataSuffix({
               consumer: '0xe38a456433fff7814e40998cf0cbbbd2c885b513',
-              providers: [] // Add campaign provider IDs here if available
+              providers: [] // Add any provider campaign addresses if needed
             });
 
             const txHash = await walletClient.sendTransaction({
               account,
-              to: '0x0000000000000000000000000000000000000000', // Placeholder or actual smart contract
+              to: '0x0000000000000000000000000000000000000000', // Dummy or real target
               data: '0x' + dataSuffix,
               value: 0n
             });
 
             const chainId = await walletClient.getChainId();
-            console.log("Referral transaction sent. Hash:", txHash);
-            console.log("Chain ID:", chainId);
 
-            await submitReferral({ txHash, chainId });
+            try {
+              await submitReferral({ txHash, chainId });
+              showToast('Referral submitted successfully!');
+            } catch (referralError) {
+              console.error('submitReferral failed:', referralError);
+              showToast('Referral sent, but tracking failed.', 'warning');
+            }
 
-            alert('Referral submitted successfully!');
           } catch (err) {
             console.error('Referral failed:', err);
-            alert('Error submitting referral. Please ensure your wallet is connected to Celo.');
+            showToast('Referral failed. Check wallet and network.', 'danger');
           }
         };
       </script>
