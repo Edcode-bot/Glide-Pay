@@ -63,5 +63,29 @@
     <li><i class="fas fa-paper-plane"></i> Can be transacted directly from your wallet, without banks</li>
   </ul>
   <a href="/main"><button>I understand</button></a>
+
+  <script>
+  window.onload = async () => {
+    const res = await fetch('/user-profile');
+    const data = await res.json();
+
+    const firstName = data.name?.split(' ')[0] || 'User';
+    document.getElementById('welcome-message').innerText = `Hello, ${firstName} 👋`;
+
+    // Conditional redirect based on whether PIN is set
+    if (data.pin && data.pin.length > 0) {
+      // Redirect to PIN verification page
+      setTimeout(() => {
+        window.location.href = '/verify-pin.html';
+      }, 1500);
+    } else {
+      // No PIN set — continue to main app
+      setTimeout(() => {
+        window.location.href = '/main';
+      }, 1500);
+    }
+  };
+  </script>
+  
 </body>
 </html>

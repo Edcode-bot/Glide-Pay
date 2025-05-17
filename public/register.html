@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
   <meta charset="UTF-8">
-  <title>Register - Axe App</title>
+  <title>Register - GlidePay</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -24,7 +24,7 @@
       text-align: left;
       cursor: pointer;
     }
-    input[type="text"], input[type="password"] {
+    input[type="text"], input[type="email"], input[type="password"] {
       width: 100%;
       padding: 0.75rem;
       margin-top: 0.75rem;
@@ -54,7 +54,7 @@
       text-decoration: none;
     }
   </style>
-  </head>
+</head>
 <body>
   <div class="center">
     <a onclick="history.back()" class="back">← Back</a>
@@ -62,7 +62,7 @@
     <p>Simplify your crypto payments with us</p>
     <form method="POST" action="/register">
       <input type="text" name="name" placeholder="Full Name" required>
-      <input type="text" name="phone" placeholder="Phone Number" required>
+      <input type="email" name="email" placeholder="Email Address" required>
       <input type="password" name="password" placeholder="Password" required>
       <div style="text-align: left; font-size: 0.9rem;">
         <input type="checkbox" id="terms" required>

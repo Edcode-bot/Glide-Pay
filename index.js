@@ -16,16 +16,14 @@ const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 
-// Connect DB
 connectDB();
 
-// Ensure uploads folder exists
 if (!fs.existsSync('./uploads')) fs.mkdirSync('./uploads');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
   filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, unique + '-' + file.originalname);
   }
 });
@@ -41,7 +39,7 @@ app.use(session({
   saveUninitialized: true
 }));
 
-// Socket.io real-time chat
+// SOCKET.IO CHAT
 io.on('connection', socket => {
   socket.on('joinRoom', ({ userId, otherUserId }) => {
     const room = [userId, otherUserId].sort().join('_');
@@ -64,7 +62,7 @@ io.on('connection', socket => {
   });
 });
 
-// ROUTES
+// PAGES
 app.get('/', (req, res) => res.redirect('/login'));
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public/login.html')));
 app.get('/register', (req, res) => res.sendFile(path.join(__dirname, 'public/register.html')));
@@ -83,6 +81,7 @@ app.get('/chat', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/chat.html'));
 });
 
+// USER INFO
 app.get('/user-info', async (req, res) => {
   if (!req.session.userId) return res.status(401).json({});
   const user = await User.findById(req.session.userId);
@@ -91,14 +90,12 @@ app.get('/user-info', async (req, res) => {
 
 // AUTH
 app.post('/register', async (req, res) => {
-  const { name, email, phone, password } = req.body;
-
+  const { name, email, password } = req.body;
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.send('User already exists.');
-
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ name, phone, email, password: hashedPassword });
+    const newUser = new User({ name, email, password: hashedPassword });
     await newUser.save();
     res.send('Registration successful.');
   } catch (err) {
@@ -108,9 +105,9 @@ app.post('/register', async (req, res) => {
 });
 
 app.post('/login', async (req, res) => {
-  const { phone, password } = req.body;
+  const { email, password } = req.body;
   try {
-    const user = await User.findOne({ phone });
+    const user = await User.findOne({ email });
     if (!user) return res.send('User not found.');
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.send('Incorrect password.');
@@ -128,7 +125,7 @@ app.get('/logout', (req, res) => {
   res.redirect('/login');
 });
 
-// Chat
+// CHAT
 app.get('/messages', async (req, res) => {
   if (!req.session.userId) return res.status(401).json([]);
   const withUser = req.query.with;
@@ -158,13 +155,14 @@ app.get('/resolve-phone', async (req, res) => {
   res.json({ userId: user._id });
 });
 
+// FILE UPLOAD
 app.post('/upload-chat-file', upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   const fileUrl = '/uploads/' + req.file.filename;
   res.json({ url: fileUrl });
 });
 
-// Notifications
+// NOTIFICATIONS
 app.get('/notifications', async (req, res) => {
   if (!req.session.userId) return res.status(401).json([]);
   const notes = await Notification.find({ user: req.session.userId }).sort({ timestamp: -1 });
@@ -177,12 +175,12 @@ app.post('/notifications/mark-read', async (req, res) => {
   res.send('All notifications marked as read.');
 });
 
-// Wallet & Transactions
+// TRANSACTIONS
 app.post('/add-cash', async (req, res) => {
   if (!req.session.userId) return res.status(401).send('Unauthorized');
   const { amount } = req.body;
   try {
-    const tx = new Transaction({ user: req.session.userId, amount, type: 'Add Cash' });
+    const tx = new Transaction({ user: req.session.userId, amount, type: 'Add Cash', date: new Date() });
     await tx.save();
     res.status(200).send('Cash added');
   } catch (err) {
@@ -195,28 +193,13 @@ app.post('/withdraw-cash', async (req, res) => {
   if (!req.session.userId) return res.status(401).send('Unauthorized');
   const { amount } = req.body;
   try {
-    const tx = new Transaction({ user: req.session.userId, amount, type: 'Withdraw' });
+    const tx = new Transaction({ user: req.session.userId, amount, type: 'Withdraw', date: new Date() });
     await tx.save();
     res.status(200).send('Cash withdrawn');
   } catch (err) {
     console.error(err);
     res.status(500).send('Error withdrawing cash');
   }
-});
-
-app.get('/balance', async (req, res) => {
-  if (!req.session.userId) return res.status(401).json({ balance: 0 });
-  const txs = await Transaction.find({ user: req.session.userId });
-  const total = txs.reduce((sum, tx) => {
-    return tx.type === 'Add Cash' ? sum + tx.amount : sum - tx.amount;
-  }, 0);
-  res.json({ balance: total });
-});
-
-app.get('/transactions', async (req, res) => {
-  if (!req.session.userId) return res.status(401).json([]);
-  const txs = await Transaction.find({ user: req.session.userId }).sort({ date: -1 });
-  res.json(txs.map(tx => ({ type: tx.type, amount: tx.amount })));
 });
 
 app.post('/transfer-token', async (req, res) => {
@@ -230,7 +213,8 @@ app.post('/transfer-token', async (req, res) => {
       type: 'Transfer',
       currency,
       address,
-      amount
+      amount,
+      date: new Date()
     });
     await tx.save();
     res.redirect('/main');
@@ -240,25 +224,53 @@ app.post('/transfer-token', async (req, res) => {
   }
 });
 
+app.get('/transactions', async (req, res) => {
+  if (!req.session.userId) return res.status(401).json([]);
+  const txs = await Transaction.find({ user: req.session.userId }).sort({ date: -1 });
+  res.json(txs.map(tx => ({
+    type: tx.type,
+    amount: tx.amount,
+    currency: tx.currency,
+    date: tx.date
+  })));
+});
+
 app.get('/user-profile', async (req, res) => {
   if (!req.session.userId) return res.status(401).json({ error: 'Unauthorized' });
-
   try {
     const user = await User.findById(req.session.userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
-
-    res.json({
-      name: user.name || 'User',
-      email: user.email || 'user@example.com'
-    });
+    res.json({ name: user.name, email: user.email });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch profile' });
   }
 });
 
-// Start server
+app.get('/invite', (req, res) => {
+  if (!req.session.userId) return res.redirect('/login');
+  res.sendFile(path.join(__dirname, 'public/invite.html'));
+});
+
+// Set PIN
+app.post('/set-pin', async (req, res) => {
+  const { pin } = req.body;
+  if (!req.session.userId) return res.status(401).send('Unauthorized');
+  const hashedPin = await bcrypt.hash(pin, 10);
+  await User.findByIdAndUpdate(req.session.userId, { pin: hashedPin });
+  res.send('PIN set successfully.');
+});
+
+// Verify PIN
+app.post('/verify-pin', async (req, res) => {
+  const { pin } = req.body;
+  if (!req.session.userId) return res.status(401).send('Unauthorized');
+  const user = await User.findById(req.session.userId);
+  const match = await bcrypt.compare(pin, user.pin || '');
+  res.json({ success: match });
+});
+
 const PORT = 3000;
 http.listen(PORT, () => {
-  console.log(`🚀 Axe App is live at http://localhost:${PORT}`);
+  console.log(`🚀 GlidePay server running at http://localhost:${PORT}`);
 });

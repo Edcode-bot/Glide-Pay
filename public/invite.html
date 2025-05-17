@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Invite Friends - GlidePay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      background: #1c1c2b;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      background: #2d2d44;
+    }
+    .header i {
+      font-size: 1.5rem;
+      margin-right: 1rem;
+      color: #ffa726;
+      cursor: pointer;
+    }
+    .container {
+      padding: 1.5rem;
+    }
+    h2 {
+      margin-bottom: 0.5rem;
+    }
+    .info-text {
+      color: #ccc;
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+    }
+    .link-box {
+      background: #2d2d44;
+      padding: 1rem;
+      border-radius: 10px;
+      word-break: break-all;
+      margin-bottom: 1rem;
+    }
+    .buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    button {
+      flex: 1;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      background: #ffa726;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .how-section {
+      border-top: 1px solid #333;
+      padding-top: 1rem;
+    }
+    .how-section h3 {
+      color: #2ecc71;
+    }
+    .step {
+      margin: 1rem 0;
+    }
+    .step-number {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #2ecc71;
+    }
+    .step-title {
+      font-weight: bold;
+      margin-top: 0.5rem;
+    }
+    .step-desc {
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+  </style>
+  <script>
+    async function loadReferral() {
+      const res = await fetch('/user-profile');
+      const user = await res.json();
+      const email = encodeURIComponent(user.email || 'your@email.com');
+      const link = `https://glidepay.app/register?ref=${email}`;
+      document.getElementById('referralLink').innerText = link;
+    }
+
+    function copyLink() {
+      const link = document.getElementById('referralLink').innerText;
+      navigator.clipboard.writeText(link).then(() => {
+        alert('Link copied!');
+      });
+    }
+
+    function shareLink() {
+      const link = document.getElementById('referralLink').innerText;
+      const shareText = `Join me on GlidePay: ${link}`;
+      if (navigator.share) {
+        navigator.share({
+          title: 'GlidePay',
+          text: shareText,
+          url: link
+        }).catch(console.error);
+      } else {
+        alert('Sharing not supported on this browser.');
+      }
+    }
+
+    window.onload = loadReferral;
+  </script>
+</head>
+<body>
+  <div class="header">
+    <i onclick="history.back()">←</i>
+    <h3 style="margin: 0;">Invite Friends</h3>
+  </div>
+
+  <div class="container">
+    <h2>Bring your friends to GlidePay</h2>
+    <p class="info-text">Share your invitation link and get rewarded. Restrictions may apply.</p>
+
+    <div class="link-box" id="referralLink">Loading...</div>
+
+    <div class="buttons">
+      <button onclick="copyLink()">Copy Link</button>
+      <button onclick="shareLink()">Share</button>
+    </div>
+
+    <div class="how-section">
+      <h3>How it works</h3>
+
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-title">Share Your Link</div>
+        <div class="step-desc">Send your referral link via chat, SMS, or social media.</div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-title">$2 Min. Balance to Qualify</div>
+        <div class="step-desc">You and your invitee must each have at least $2 to earn rewards.</div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-title">Invitee Signs Up</div>
+        <div class="step-desc">They sign up with your link. Both of you earn $0.10.</div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-title">Invitee Adds Cash</div>
+        <div class="step-desc">Once they add at least $2, you can earn up to $0.10 more.</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
