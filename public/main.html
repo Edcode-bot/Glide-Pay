@@ -604,5 +604,149 @@
           }
         </script>
         
+<script>
+  // Transaction Management System
+  class TransactionManager {
+    constructor() {
+      this.transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+    }
+
+    addTransaction(transaction) {
+      transaction.id = Date.now();
+      transaction.date = new Date().toISOString();
+      this.transactions.unshift(transaction);
+      this.saveTransactions();
+      this.updateUI();
+    }
+
+    getTransactions(limit = null) {
+      const txs = this.transactions;
+      return limit ? txs.slice(0, limit) : txs;
+    }
+
+    getTransactionsByType(type) {
+      return this.transactions.filter(tx => tx.type === type);
+    }
+
+    saveTransactions() {
+      localStorage.setItem('transactions', JSON.stringify(this.transactions));
+    }
+
+    formatAmount(amount) {
+      return amount.toLocaleString('en-UG', {
+        style: 'currency',
+        currency: 'UGX'
+      });
+    }
+
+    updateUI() {
+      const container = document.getElementById("recent-transactions");
+      const recent = this.getTransactions(3);
+
+      if (recent.length === 0) {
+        container.innerHTML = `
+          <div class="text-center text-muted">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="mb-2 opacity-50">
+              <path d="M4 2v20l4-4 4 4 4-4 4 4V2H4zm4 7h8m-8 4h8"/>
+            </svg>
+            <p>No transactions yet</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = recent.map(tx => {
+        const color = tx.type.toLowerCase().includes('withdraw') || tx.type.toLowerCase().includes('send') 
+          ? 'text-danger' : 'text-success';
+        const sign = tx.type.toLowerCase().includes('withdraw') || tx.type.toLowerCase().includes('send') 
+          ? '-' : '+';
+        
+        return `
+          <div class="d-flex justify-content-between border-bottom py-2">
+            <div>
+              <div class="fw-semibold">${tx.type}</div>
+              <div class="small text-secondary">${new Date(tx.date).toLocaleString()}</div>
+              ${tx.description ? `<div class="small text-muted">${tx.description}</div>` : ''}
+            </div>
+            <div class="fw-bold ${color}">${sign} ${this.formatAmount(tx.amount)}</div>
+          </div>`;
+      }).join('');
+
+      // Update balance
+      const balance = this.calculateBalance();
+      document.getElementById('balance').textContent = this.formatAmount(balance).replace('UGX', '');
+    }
+
+    calculateBalance() {
+      return this.transactions.reduce((acc, tx) => {
+        const isDebit = tx.type.toLowerCase().includes('withdraw') || 
+                       tx.type.toLowerCase().includes('send') ||
+                       tx.type.toLowerCase().includes('payment');
+        return isDebit ? acc - tx.amount : acc + tx.amount;
+      }, 0);
+    }
+  }
+
+  // Initialize Transaction Manager
+  const transactionManager = new TransactionManager();
+
+  // Toast Notification System
+  class ToastManager {
+    show(message, type = 'success') {
+      const toastEl = document.getElementById('toastDivvi');
+      const toastBody = document.getElementById('toastBody');
+      
+      toastBody.textContent = message;
+      toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+      
+      const toast = new bootstrap.Toast(toastEl, {
+        position: 'bottom-center',
+        delay: 3000
+      });
+      toast.show();
+    }
+  }
+
+  const toastManager = new ToastManager();
+
+  // Page Load
+  window.onload = async () => {
+    try {
+      // Load user profile
+      const profile = {
+        name: localStorage.getItem('userName') || 'User',
+        email: localStorage.getItem('userEmail') || 'user@example.com'
+      };
+
+      const firstName = profile.name.split(' ')[0];
+      const emailInitial = profile.email[0].toUpperCase();
+      
+      document.getElementById('welcome-message').innerText = `Hello, ${firstName} 👋`;
+      document.getElementById('profile-initial').innerText = emailInitial;
+
+      // Update transactions UI
+      transactionManager.updateUI();
+
+    } catch (error) {
+      console.error('Error loading dashboard:', error);
+      toastManager.show('Error loading dashboard data', 'danger');
+    }
+  };
+
+  // Update toast styling
+  const style = document.createElement('style');
+  style.textContent = `
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      min-width: 200px;
+      z-index: 9999;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+  `;
+  document.head.appendChild(style);
+</script>
 </body>
       </html>

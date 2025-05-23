@@ -123,23 +123,150 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Sample product data - In production, this would come from an API
+        // Product data with real images
         const products = [
             {
                 id: 1,
-                name: "Wireless Earbuds",
-                price: 89.99,
+                name: "Samsung Galaxy A54",
+                price: 1499000,
                 category: "Electronics",
-                image: "https://example.com/earbuds.jpg",
-                description: "High-quality wireless earbuds with noise cancellation"
+                image: "https://images.samsung.com/is/image/samsung/p6pim/africa_en/2302/gallery/africa-en-galaxy-a54-5g-a546-sm-a546ezkeafr-thumb-534863401",
+                description: "6.4\" FHD+ Display, 128GB Storage, 8GB RAM"
             },
-            // Add more products...
+            {
+                id: 2,
+                name: "Apple iPhone 14",
+                price: 3599000,
+                category: "Electronics",
+                image: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-14-finish-select-202209-6-1inch-blue",
+                description: "A15 Bionic chip, 128GB Storage"
+            },
+            {
+                id: 3,
+                name: "Nike Air Max",
+                price: 450000,
+                category: "Fashion",
+                image: "https://static.nike.com/a/images/t_PDP_1280_v1/f_auto,q_auto:eco/7c2fff38-9f89-40f1-8afd-b1537b60bc79/air-max-90-shoes-N7Tbw0.png",
+                description: "Classic design, Multiple sizes available"
+            },
+            {
+                id: 4,
+                name: "Sony 55\" 4K TV",
+                price: 2299000,
+                category: "Electronics",
+                image: "https://www.sony.com/image/5d02da5df552836db894cead8a68f5f3",
+                description: "4K HDR, Smart Android TV"
+            },
+            {
+                id: 5,
+                name: "MacBook Air M2",
+                price: 4999000,
+                category: "Electronics",
+                image: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/macbook-air-midnight-select-20220606",
+                description: "13.6\" Liquid Retina, 8GB RAM, 256GB SSD"
+            },
+            {
+                id: 6,
+                name: "Adidas Ultraboost",
+                price: 399000,
+                category: "Fashion",
+                image: "https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/fbaf991a78bc4896a3e9ad7800abcec6_9366/Ultraboost_22_Shoes_Black_GZ0127_01_standard.jpg",
+                description: "Premium running shoes"
+            }
         ];
+
+        // Cart Management System
+        class CartManager {
+            constructor() {
+                this.cart = JSON.parse(localStorage.getItem('cart')) || [];
+            }
+
+            addItem(product, quantity) {
+                const existingItem = this.cart.find(item => item.id === product.id);
+                
+                if (existingItem) {
+                    existingItem.quantity += quantity;
+                } else {
+                    this.cart.push({
+                        ...product,
+                        quantity
+                    });
+                }
+                
+                this.saveCart();
+                this.updateCartCount();
+                toastManager.show('Item added to cart', 'success');
+            }
+
+            removeItem(productId) {
+                this.cart = this.cart.filter(item => item.id !== productId);
+                this.saveCart();
+                this.updateCartCount();
+                toastManager.show('Item removed from cart', 'info');
+            }
+
+            updateQuantity(productId, quantity) {
+                const item = this.cart.find(item => item.id === productId);
+                if (item) {
+                    item.quantity = quantity;
+                    this.saveCart();
+                    this.updateCartCount();
+                }
+            }
+
+            getCart() {
+                return this.cart;
+            }
+
+            getTotal() {
+                return this.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+            }
+
+            clearCart() {
+                this.cart = [];
+                this.saveCart();
+                this.updateCartCount();
+            }
+
+            saveCart() {
+                localStorage.setItem('cart', JSON.stringify(this.cart));
+            }
+
+            updateCartCount() {
+                const count = this.cart.reduce((total, item) => total + item.quantity, 0);
+                document.getElementById('cartCount').textContent = count;
+            }
+        }
+
+        // Toast Notification System
+        class ToastManager {
+            show(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `toast-notification bg-${type}`;
+                toast.textContent = message;
+                
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('show');
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                        setTimeout(() => {
+                            document.body.removeChild(toast);
+                        }, 300);
+                    }, 2000);
+                }, 100);
+            }
+        }
+
+        // Initialize managers
+        const cartManager = new CartManager();
+        const toastManager = new ToastManager();
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', () => {
             loadProducts();
-            updateCartCount();
+            cartManager.updateCartCount();
         });
 
         function loadProducts(category = 'All') {
@@ -153,7 +280,8 @@
                     <div class="product-card p-3 h-100">
                         <img src="${product.image}" class="img-fluid rounded mb-3" style="aspect-ratio: 1; object-fit: cover;">
                         <h6 class="mb-2">${product.name}</h6>
-                        <div class="text-warning mb-3">UGX ${product.price.toLocaleString()}</div>
+                        <div class="text-warning mb-2">UGX ${product.price.toLocaleString()}</div>
+                        <small class="text-muted d-block mb-3">${product.description}</small>
                         <button class="btn btn-warning w-100" onclick="showAddToCartModal(${product.id})">
                             Add to Cart
                         </button>
@@ -168,21 +296,59 @@
             document.getElementById('modalProductName').textContent = product.name;
             document.getElementById('modalProductPrice').textContent = `UGX ${product.price.toLocaleString()}`;
             document.getElementById('quantityInput').value = 1;
+            
+            // Store selected product for add to cart action
+            document.getElementById('addToCartModal').dataset.productId = productId;
+            
             new bootstrap.Modal(document.getElementById('addToCartModal')).show();
         }
 
         function addToCart() {
+            const modalEl = document.getElementById('addToCartModal');
+            const productId = parseInt(modalEl.dataset.productId);
             const quantity = parseInt(document.getElementById('quantityInput').value);
-            // Add to cart logic here
-            updateCartCount();
-            new bootstrap.Modal(document.getElementById('addToCartModal')).hide();
+            
+            const product = products.find(p => p.id === productId);
+            cartManager.addItem(product, quantity);
+            
+            bootstrap.Modal.getInstance(modalEl).hide();
         }
 
-        function updateCartCount() {
-            // Get cart count from localStorage or API
-            const count = 0; // Replace with actual count
-            document.getElementById('cartCount').textContent = count;
-        }
+        // Add toast styling
+        const style = document.createElement('style');
+        style.textContent = `
+            .toast-notification {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%) translateY(100px);
+                padding: 12px 24px;
+                border-radius: 10px;
+                color: white;
+                font-weight: 500;
+                z-index: 9999;
+                opacity: 0;
+                transition: all 0.3s ease;
+            }
+            
+            .toast-notification.show {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+            
+            .bg-success {
+                background: #2ecc71;
+            }
+            
+            .bg-info {
+                background: #3498db;
+            }
+            
+            .bg-danger {
+                background: #e74c3c;
+            }
+        `;
+        document.head.appendChild(style);
 
         // Event Listeners
         document.querySelectorAll('.category-pill').forEach(pill => {

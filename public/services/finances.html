@@ -340,29 +340,542 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-button').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
-            
-            if (tab === 'savings') {
-                document.getElementById('savingsTab').style.display = 'block';
-                document.getElementById('loansTab').style.display = 'none';
-            } else {
-                document.getElementById('savingsTab').style.display = 'none';
-                document.getElementById('loansTab').style.display = 'block';
+        // Finance Management System
+        class FinanceManager {
+            constructor() {
+                this.savings = JSON.parse(localStorage.getItem('savings')) || {
+                    balance: 0,
+                    transactions: [],
+                    goals: []
+                };
+                
+                this.loans = JSON.parse(localStorage.getItem('loans')) || {
+                    active: [],
+                    applications: [],
+                    history: []
+                };
+
+                this.savingsProducts = [
+                    {
+                        id: 'fixed',
+                        name: 'Fixed Savings',
+                        minAmount: 100000,
+                        interestRate: 12,
+                        lockPeriod: 12,
+                        description: 'Earn 12% interest annually with a 12-month lock period'
+                    },
+                    {
+                        id: 'flexible',
+                        name: 'Flexible Savings',
+                        minAmount: 10000,
+                        interestRate: 6,
+                        lockPeriod: 0,
+                        description: 'Earn 6% interest annually with no lock period'
+                    },
+                    {
+                        id: 'education',
+                        name: 'Education Savings',
+                        minAmount: 50000,
+                        interestRate: 8,
+                        lockPeriod: 6,
+                        description: 'Save for education with 8% interest and 6-month lock period'
+                    }
+                ];
+
+                this.loanProducts = [
+                    {
+                        id: 'personal',
+                        name: 'Personal Loan',
+                        maxAmount: 5000000,
+                        interestRate: 18,
+                        tenure: 12,
+                        description: 'Quick personal loans up to UGX 5M'
+                    },
+                    {
+                        id: 'business',
+                        name: 'Business Loan',
+                        maxAmount: 50000000,
+                        interestRate: 15,
+                        tenure: 24,
+                        description: 'Grow your business with up to UGX 50M'
+                    },
+                    {
+                        id: 'education',
+                        name: 'Education Loan',
+                        maxAmount: 10000000,
+                        interestRate: 12,
+                        tenure: 36,
+                        description: 'Fund your education with low-interest loans'
+                    }
+                ];
+            }
+
+            // Savings Methods
+            addSavings(amount, type, description = '') {
+                const transaction = {
+                    id: Date.now(),
+                    type: 'deposit',
+                    amount,
+                    savingsType: type,
+                    description,
+                    date: new Date().toISOString()
+                };
+
+                this.savings.balance += amount;
+                this.savings.transactions.unshift(transaction);
+                this.saveSavings();
+
+                // Add to main transaction history
+                const transactionManager = window.parent.transactionManager;
+                if (transactionManager) {
+                    transactionManager.addTransaction({
+                        type: 'Savings Deposit',
+                        amount,
+                        description: `${type} Savings Deposit`
+                    });
+                }
+
+                return transaction;
+            }
+
+            withdrawSavings(amount, description = '') {
+                if (amount > this.savings.balance) {
+                    throw new Error('Insufficient balance');
+                }
+
+                const transaction = {
+                    id: Date.now(),
+                    type: 'withdrawal',
+                    amount,
+                    description,
+                    date: new Date().toISOString()
+                };
+
+                this.savings.balance -= amount;
+                this.savings.transactions.unshift(transaction);
+                this.saveSavings();
+
+                // Add to main transaction history
+                const transactionManager = window.parent.transactionManager;
+                if (transactionManager) {
+                    transactionManager.addTransaction({
+                        type: 'Savings Withdrawal',
+                        amount: -amount,
+                        description: 'Savings Withdrawal'
+                    });
+                }
+
+                return transaction;
+            }
+
+            addSavingsGoal(goal) {
+                goal.id = Date.now();
+                goal.progress = 0;
+                goal.createdAt = new Date().toISOString();
+                this.savings.goals.push(goal);
+                this.saveSavings();
+            }
+
+            updateSavingsGoal(goalId, contribution) {
+                const goal = this.savings.goals.find(g => g.id === goalId);
+                if (!goal) return;
+
+                goal.progress += contribution;
+                this.saveSavings();
+            }
+
+            saveSavings() {
+                localStorage.setItem('savings', JSON.stringify(this.savings));
+                this.updateUI();
+            }
+
+            // Loan Methods
+            applyForLoan(application) {
+                application.id = Date.now();
+                application.status = 'pending';
+                application.appliedAt = new Date().toISOString();
+                
+                this.loans.applications.push(application);
+                this.saveLoans();
+
+                // Simulate loan approval process
+                setTimeout(() => {
+                    this.processLoanApplication(application.id);
+                }, 2000);
+            }
+
+            processLoanApplication(applicationId) {
+                const application = this.loans.applications.find(a => a.id === applicationId);
+                if (!application) return;
+
+                // Simple approval logic (can be made more complex)
+                const approved = Math.random() > 0.3;
+                application.status = approved ? 'approved' : 'rejected';
+                application.processedAt = new Date().toISOString();
+
+                if (approved) {
+                    const loan = {
+                        id: Date.now(),
+                        amount: application.amount,
+                        type: application.loanType,
+                        interestRate: this.loanProducts.find(p => p.id === application.loanType).interestRate,
+                        tenure: application.tenure,
+                        startDate: new Date().toISOString(),
+                        endDate: new Date(Date.now() + (application.tenure * 30 * 24 * 60 * 60 * 1000)).toISOString(),
+                        monthlyPayment: this.calculateMonthlyPayment(application.amount, application.tenure),
+                        remainingAmount: application.amount,
+                        payments: []
+                    };
+
+                    this.loans.active.push(loan);
+                    
+                    // Add to main transaction history
+                    const transactionManager = window.parent.transactionManager;
+                    if (transactionManager) {
+                        transactionManager.addTransaction({
+                            type: 'Loan Disbursement',
+                            amount: application.amount,
+                            description: `${application.loanType} Loan Approved`
+                        });
+                    }
+                }
+
+                this.saveLoans();
+                toastManager.show(
+                    approved ? 'Loan application approved!' : 'Loan application rejected.',
+                    approved ? 'success' : 'danger'
+                );
+            }
+
+            makeLoanPayment(loanId, amount) {
+                const loan = this.loans.active.find(l => l.id === loanId);
+                if (!loan) return;
+
+                const payment = {
+                    id: Date.now(),
+                    amount,
+                    date: new Date().toISOString()
+                };
+
+                loan.payments.push(payment);
+                loan.remainingAmount -= amount;
+
+                if (loan.remainingAmount <= 0) {
+                    // Move to history if fully paid
+                    this.loans.history.push({
+                        ...loan,
+                        status: 'completed',
+                        completedAt: new Date().toISOString()
+                    });
+                    this.loans.active = this.loans.active.filter(l => l.id !== loanId);
+                }
+
+                this.saveLoans();
+
+                // Add to main transaction history
+                const transactionManager = window.parent.transactionManager;
+                if (transactionManager) {
+                    transactionManager.addTransaction({
+                        type: 'Loan Payment',
+                        amount: -amount,
+                        description: `Loan Payment - ${loan.type}`
+                    });
+                }
+            }
+
+            calculateMonthlyPayment(principal, tenure) {
+                const monthlyRate = 0.15 / 12; // 15% annual rate
+                const numberOfPayments = tenure;
+                
+                return (principal * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / 
+                       (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
+            }
+
+            saveLoans() {
+                localStorage.setItem('loans', JSON.stringify(this.loans));
+                this.updateUI();
+            }
+
+            // UI Updates
+            updateUI() {
+                this.updateSavingsUI();
+                this.updateLoansUI();
+            }
+
+            updateSavingsUI() {
+                // Update balance display
+                const balanceElement = document.getElementById('savingsBalance');
+                if (balanceElement) {
+                    balanceElement.textContent = `UGX ${this.savings.balance.toLocaleString()}`;
+                }
+
+                // Update transactions list
+                const transactionsList = document.getElementById('savingsTransactions');
+                if (transactionsList) {
+                    if (this.savings.transactions.length === 0) {
+                        transactionsList.innerHTML = `
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-piggy-bank fa-3x mb-3"></i>
+                                <p>No transactions yet</p>
+                            </div>
+                        `;
+                    } else {
+                        transactionsList.innerHTML = this.savings.transactions.map(tx => `
+                            <div class="transaction-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">${tx.type.charAt(0).toUpperCase() + tx.type.slice(1)}</h6>
+                                    <small class="text-muted">${new Date(tx.date).toLocaleString()}</small>
+                                </div>
+                                <div class="text-${tx.type === 'deposit' ? 'success' : 'danger'}">
+                                    ${tx.type === 'deposit' ? '+' : '-'}UGX ${tx.amount.toLocaleString()}
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+
+                // Update goals list
+                const goalsList = document.getElementById('savingsGoals');
+                if (goalsList) {
+                    if (this.savings.goals.length === 0) {
+                        goalsList.innerHTML = `
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-bullseye fa-3x mb-3"></i>
+                                <p>No savings goals yet</p>
+                            </div>
+                        `;
+                    } else {
+                        goalsList.innerHTML = this.savings.goals.map(goal => `
+                            <div class="goal-item">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0">${goal.name}</h6>
+                                    <span class="text-muted">UGX ${goal.progress.toLocaleString()} / ${goal.target.toLocaleString()}</span>
+                                </div>
+                                <div class="progress bg-dark">
+                                    <div class="progress-bar bg-warning" 
+                                         role="progressbar" 
+                                         style="width: ${(goal.progress / goal.target * 100)}%">
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            }
+
+            updateLoansUI() {
+                // Update active loans
+                const activeLoans = document.getElementById('activeLoans');
+                if (activeLoans) {
+                    if (this.loans.active.length === 0) {
+                        activeLoans.innerHTML = `
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-file-invoice-dollar fa-3x mb-3"></i>
+                                <p>No active loans</p>
+                            </div>
+                        `;
+                    } else {
+                        activeLoans.innerHTML = this.loans.active.map(loan => `
+                            <div class="loan-item">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0">${loan.type} Loan</h6>
+                                    <span class="badge bg-warning">Active</span>
+                                </div>
+                                <div class="loan-details">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <small class="text-muted d-block">Remaining Amount</small>
+                                            <div>UGX ${loan.remainingAmount.toLocaleString()}</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted d-block">Monthly Payment</small>
+                                            <div>UGX ${loan.monthlyPayment.toLocaleString()}</div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-warning btn-sm mt-3" 
+                                            onclick="makePayment(${loan.id})">
+                                        Make Payment
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+
+                // Update loan applications
+                const applications = document.getElementById('loanApplications');
+                if (applications) {
+                    if (this.loans.applications.length === 0) {
+                        applications.innerHTML = `
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-file-alt fa-3x mb-3"></i>
+                                <p>No loan applications</p>
+                            </div>
+                        `;
+                    } else {
+                        applications.innerHTML = this.loans.applications.map(app => `
+                            <div class="application-item">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0">${app.loanType} Loan Application</h6>
+                                    <span class="badge bg-${
+                                        app.status === 'pending' ? 'warning' : 
+                                        app.status === 'approved' ? 'success' : 'danger'
+                                    }">${app.status}</span>
+                                </div>
+                                <div class="application-details">
+                                    <small class="text-muted d-block">Amount</small>
+                                    <div>UGX ${app.amount.toLocaleString()}</div>
+                                    <small class="text-muted d-block mt-2">Applied On</small>
+                                    <div>${new Date(app.appliedAt).toLocaleDateString()}</div>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
             }
         }
 
-        function openLoanForm(type) {
-            new bootstrap.Modal(document.getElementById('loanModal')).show();
+        // Toast Notification System
+        class ToastManager {
+            show(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `toast-notification bg-${type}`;
+                toast.textContent = message;
+                
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('show');
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                        setTimeout(() => {
+                            document.body.removeChild(toast);
+                        }, 300);
+                    }, 2000);
+                }, 100);
+            }
         }
 
-        function openSavingsForm(type) {
-            new bootstrap.Modal(document.getElementById('savingsModal')).show();
+        // Initialize managers
+        const financeManager = new FinanceManager();
+        const toastManager = new ToastManager();
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            financeManager.updateUI();
+        });
+
+        // UI Functions
+        function showSavingsModal(type) {
+            const product = financeManager.savingsProducts.find(p => p.id === type);
+            if (!product) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'savingsModal';
+            modal.innerHTML = `
+                <div class="modal-dialog">
+                    <div class="modal-content bg-dark text-light">
+                        <div class="modal-header border-secondary">
+                            <h5 class="modal-title">${product.name}</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="product-details mb-4">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Interest Rate</small>
+                                        <div>${product.interestRate}% per annum</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Minimum Amount</small>
+                                        <div>UGX ${product.minAmount.toLocaleString()}</div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <small class="text-muted d-block">Lock Period</small>
+                                    <div>${product.lockPeriod} months</div>
+                                </div>
+                                <div class="mt-3">
+                                    <small class="text-muted d-block">Description</small>
+                                    <div>${product.description}</div>
+                                </div>
+                            </div>
+                            <form id="savingsForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Amount to Save</label>
+                                    <input type="number" class="form-control bg-dark text-light border-secondary" 
+                                           min="${product.minAmount}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Description (Optional)</label>
+                                    <input type="text" class="form-control bg-dark text-light border-secondary">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer border-secondary">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-warning" onclick="processSavings('${type}')">Save Now</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            const modalInstance = new bootstrap.Modal(modal);
+            modalInstance.show();
+
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modal);
+            });
         }
 
+        function showLoanModal(type) {
+            const product = financeManager.loanProducts.find(p => p.id === type);
+            if (!product) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'loanModal';
+            modal.innerHTML = `
+                <div class="modal-dialog">
+                    <div class="modal-content bg-dark text-light">
+                        <div class="modal-header border-secondary">
+                            <h5 class="modal-title">${product.name}</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="product-details mb-4">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Interest Rate</small>
+                                        <div>${product.interestRate}% per annum</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Maximum Amount</small>
+                                        <div>UGX ${product.maxAmount.toLocaleString()}</div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <small class="text-muted d-block">Maximum Tenure</small>
+                                    <div>${product.tenure} months</div>
+                                </div>
+                                <div class="mt-3">
+                                    <small class="text-muted d-block">Description</small>
+                                    <div>${product.description}</div>
+                                </div>
+                            </div>
+                            <form id="loanForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Loan Amount</label>
+                                    <input type="number" class="form-control bg-dark text-light border-secondary" 
+                                           max="${product.maxAmount}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Tenure (months)</label>
+                                    <input type="number" class="form-control bg-dark text-light border-secondary" 
+                                           max="${product.tenure}" required>
+                                </div>
         function submitLoanApplication() {
             // Add loan application logic here
             const modal = bootstrap.Modal.getInstance(document.getElementById('loanModal'));

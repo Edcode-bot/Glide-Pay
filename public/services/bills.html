@@ -204,33 +204,259 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const providers = {
-            electricity: ['UMEME', 'REA'],
-            water: ['NWSC', 'Local Authority'],
-            internet: ['MTN Fiber', 'Airtel Home', 'Zuku'],
-            tv: ['DSTV', 'GOtv', 'StarTimes'],
-            education: ['School Pay', 'Direct Payment'],
-            government: ['URA', 'NSSF', 'KCCA']
-        };
+        // Bill Payment System
+        class BillPaymentManager {
+            constructor() {
+                this.providers = {
+                    electricity: [
+                        { id: 'umeme', name: 'UMEME', logo: 'https://play-lh.googleusercontent.com/vTtqoS-ZoHEUe5I3QKGsxwLGCiKCZUvxGGHlHVtBQxIkNlxkl6j2qIEgS8p7fA2_D7o' },
+                        { id: 'rea', name: 'Rural Electrification', logo: 'https://www.rea.or.ug/images/rea-logo.png' }
+                    ],
+                    water: [
+                        { id: 'nwsc', name: 'National Water', logo: 'https://www.nwsc.co.ug/images/nwsc_logo.png' },
+                        { id: 'local', name: 'Local Authority', logo: 'https://example.com/local.png' }
+                    ],
+                    internet: [
+                        { id: 'mtn', name: 'MTN Fiber', logo: 'https://www.mtn.co.ug/wp-content/uploads/2021/03/MTN-Logo.png' },
+                        { id: 'airtel', name: 'Airtel Home', logo: 'https://www.airtel.co.ug/assets/images/logo.png' },
+                        { id: 'zuku', name: 'Zuku Fiber', logo: 'https://zuku.co.ke/wp-content/uploads/2019/06/zuku-logo.png' }
+                    ],
+                    tv: [
+                        { id: 'dstv', name: 'DSTV', logo: 'https://www.dstv.co.ug/content/dam/dstv/images/logos/dstv-logo.png' },
+                        { id: 'gotv', name: 'GOtv', logo: 'https://www.gotvafrica.com/content/dam/gotv/logos/gotv-logo.png' },
+                        { id: 'startimes', name: 'StarTimes', logo: 'https://www.startimes.co.ug/images/startimes-logo.png' }
+                    ],
+                    education: [
+                        { id: 'schoolpay', name: 'School Pay', logo: 'https://schoolpay.co.ug/images/logo.png' },
+                        { id: 'direct', name: 'Direct Payment', logo: 'https://example.com/direct.png' }
+                    ],
+                    government: [
+                        { id: 'ura', name: 'URA', logo: 'https://www.ura.go.ug/images/ura-logo.png' },
+                        { id: 'nssf', name: 'NSSF', logo: 'https://www.nssfug.org/images/nssf-logo.png' },
+                        { id: 'kcca', name: 'KCCA', logo: 'https://www.kcca.go.ug/images/kcca-logo.png' }
+                    ]
+                };
+
+                this.recentPayments = JSON.parse(localStorage.getItem('recentPayments')) || [];
+            }
+
+            getProviders(type) {
+                return this.providers[type] || [];
+            }
+
+            addPayment(payment) {
+                payment.id = Date.now();
+                payment.date = new Date().toISOString();
+                payment.status = 'pending';
+
+                // Add to recent payments
+                this.recentPayments.unshift(payment);
+                if (this.recentPayments.length > 10) {
+                    this.recentPayments.pop();
+                }
+                this.savePayments();
+
+                // Add to transaction history
+                const transactionManager = window.parent.transactionManager;
+                if (transactionManager) {
+                    transactionManager.addTransaction({
+                        type: 'Bill Payment',
+                        amount: payment.amount,
+                        description: `${payment.provider} - ${payment.accountNumber}`
+                    });
+                }
+
+                // Simulate payment processing
+                setTimeout(() => {
+                    payment.status = Math.random() > 0.1 ? 'success' : 'failed';
+                    this.savePayments();
+                    this.updateUI();
+                    
+                    toastManager.show(
+                        payment.status === 'success' 
+                            ? 'Payment processed successfully!' 
+                            : 'Payment failed. Please try again.',
+                        payment.status === 'success' ? 'success' : 'danger'
+                    );
+                }, 2000);
+            }
+
+            savePayments() {
+                localStorage.setItem('recentPayments', JSON.stringify(this.recentPayments));
+                this.updateUI();
+            }
+
+            updateUI() {
+                const container = document.getElementById('recentPayments');
+                if (!container) return;
+
+                if (this.recentPayments.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-receipt fa-3x mb-3"></i>
+                            <p>No recent payments</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = this.recentPayments.map(payment => `
+                    <div class="recent-payment d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="bill-icon me-3">
+                                <i class="${this.getIconClass(payment.type)}"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">${payment.provider}</h6>
+                                <small class="text-muted">${new Date(payment.date).toLocaleString()}</small>
+                                <small class="d-block text-muted">${payment.accountNumber}</small>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <div class="text-warning mb-1">UGX ${payment.amount.toLocaleString()}</div>
+                            <span class="payment-status status-${payment.status}">
+                                ${payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                            </span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            getIconClass(type) {
+                const icons = {
+                    electricity: 'fas fa-bolt text-warning',
+                    water: 'fas fa-tint text-info',
+                    internet: 'fas fa-wifi text-primary',
+                    tv: 'fas fa-tv text-danger',
+                    education: 'fas fa-graduation-cap text-success',
+                    government: 'fas fa-landmark text-primary'
+                };
+                return icons[type] || 'fas fa-file-invoice text-muted';
+            }
+        }
+
+        // Toast Notification System
+        class ToastManager {
+            show(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `toast-notification bg-${type}`;
+                toast.textContent = message;
+                
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('show');
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                        setTimeout(() => {
+                            document.body.removeChild(toast);
+                        }, 300);
+                    }, 2000);
+                }, 100);
+            }
+        }
+
+        // Initialize managers
+        const billManager = new BillPaymentManager();
+        const toastManager = new ToastManager();
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            billManager.updateUI();
+        });
 
         function showPaymentForm(type) {
+            const providers = billManager.getProviders(type);
             const select = document.getElementById('providerSelect');
-            select.innerHTML = providers[type]
-                .map(provider => `<option value="${provider}">${provider}</option>`)
-                .join('');
             
-            document.getElementById('modalTitle').textContent = `Pay ${type.charAt(0).toUpperCase() + type.slice(1)} Bill`;
+            select.innerHTML = providers.map(provider => `
+                <option value="${provider.id}">${provider.name}</option>
+            `).join('');
+            
+            document.getElementById('modalTitle').textContent = 
+                `Pay ${type.charAt(0).toUpperCase() + type.slice(1)} Bill`;
+            
+            // Store selected type for payment processing
+            document.getElementById('paymentModal').dataset.billType = type;
+            
             new bootstrap.Modal(document.getElementById('paymentModal')).show();
         }
 
         function processPayment() {
-            // Add payment processing logic here
-            const modal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'));
-            modal.hide();
-            
-            // Show success message
-            alert('Payment processed successfully!');
+            const form = document.getElementById('paymentForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const modal = document.getElementById('paymentModal');
+            const type = modal.dataset.billType;
+            const providerId = document.getElementById('providerSelect').value;
+            const provider = billManager.getProviders(type)
+                .find(p => p.id === providerId).name;
+            const accountNumber = form.querySelector('input[type="text"]').value;
+            const amount = parseFloat(form.querySelector('input[type="number"]').value);
+            const phone = form.querySelector('input[type="tel"]').value;
+
+            billManager.addPayment({
+                type,
+                provider,
+                accountNumber,
+                amount,
+                phone
+            });
+
+            bootstrap.Modal.getInstance(modal).hide();
+            toastManager.show('Processing payment...', 'info');
         }
+
+        // Add toast styling
+        const style = document.createElement('style');
+        style.textContent = `
+            .toast-notification {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%) translateY(100px);
+                padding: 12px 24px;
+                border-radius: 10px;
+                color: white;
+                font-weight: 500;
+                z-index: 9999;
+                opacity: 0;
+                transition: all 0.3s ease;
+            }
+            
+            .toast-notification.show {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+            
+            .status-success {
+                background: rgba(46, 204, 113, 0.2);
+                color: #2ecc71;
+                padding: 5px 10px;
+                border-radius: 20px;
+                font-size: 0.8rem;
+            }
+            
+            .status-pending {
+                background: rgba(241, 196, 15, 0.2);
+                color: #f1c40f;
+                padding: 5px 10px;
+                border-radius: 20px;
+                font-size: 0.8rem;
+            }
+            
+            .status-failed {
+                background: rgba(231, 76, 60, 0.2);
+                color: #e74c3c;
+                padding: 5px 10px;
+                border-radius: 20px;
+                font-size: 0.8rem;
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html> 

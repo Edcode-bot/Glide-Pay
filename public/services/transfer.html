@@ -279,6 +279,319 @@
             modal.hide();
             alert('Transfer successful!');
         }
+
+        // Transfer Service Manager
+        class TransferManager {
+            constructor() {
+                this.transfers = JSON.parse(localStorage.getItem('transfers')) || [];
+                this.recipients = JSON.parse(localStorage.getItem('recipients')) || [];
+                this.banks = [
+                    { id: 'stanbic', name: 'Stanbic Bank', logo: 'https://www.stanbicbank.co.ug/static/img/logo.png' },
+                    { id: 'dfcu', name: 'DFCU Bank', logo: 'https://www.dfculimited.com/wp-content/uploads/2020/01/dfcu-logo.png' },
+                    { id: 'centenary', name: 'Centenary Bank', logo: 'https://www.centenarybank.co.ug/sites/default/files/logo.png' },
+                    { id: 'equity', name: 'Equity Bank', logo: 'https://equitygroupholdings.com/ug/wp-content/uploads/sites/5/2019/08/equity-bank-logo.png' }
+                ];
+                this.mobileProviders = [
+                    { id: 'mtn', name: 'MTN Mobile Money', logo: 'https://www.mtn.co.ug/wp-content/uploads/2021/03/MTN-Logo.png' },
+                    { id: 'airtel', name: 'Airtel Money', logo: 'https://www.airtel.co.ug/assets/images/logo.png' }
+                ];
+            }
+
+            transfer(details) {
+                const transfer = {
+                    id: Date.now(),
+                    ...details,
+                    status: 'pending',
+                    date: new Date().toISOString()
+                };
+
+                // Calculate fee
+                transfer.fee = this.calculateFee(details.amount, details.type);
+                transfer.total = transfer.amount + transfer.fee;
+
+                this.transfers.unshift(transfer);
+                this.saveTransfers();
+
+                // Add recipient if new
+                if (!this.recipients.some(r => 
+                    r.accountNumber === details.accountNumber && 
+                    r.type === details.type
+                )) {
+                    this.addRecipient({
+                        name: details.recipientName,
+                        accountNumber: details.accountNumber,
+                        bank: details.bank,
+                        type: details.type
+                    });
+                }
+
+                // Add to main transaction history
+                const transactionManager = window.parent.transactionManager;
+                if (transactionManager) {
+                    transactionManager.addTransaction({
+                        type: 'Money Transfer',
+                        amount: -transfer.total,
+                        description: `Transfer to ${details.recipientName}`
+                    });
+                }
+
+                // Simulate processing
+                setTimeout(() => {
+                    transfer.status = Math.random() > 0.1 ? 'success' : 'failed';
+                    this.saveTransfers();
+                    this.updateUI();
+                    
+                    toastManager.show(
+                        transfer.status === 'success' 
+                            ? 'Transfer successful!' 
+                            : 'Transfer failed. Please try again.',
+                        transfer.status === 'success' ? 'success' : 'danger'
+                    );
+                }, 2000);
+
+                return transfer;
+            }
+
+            addRecipient(recipient) {
+                recipient.id = Date.now();
+                this.recipients.push(recipient);
+                localStorage.setItem('recipients', JSON.stringify(this.recipients));
+                this.updateUI();
+            }
+
+            removeRecipient(id) {
+                this.recipients = this.recipients.filter(r => r.id !== id);
+                localStorage.setItem('recipients', JSON.stringify(this.recipients));
+                this.updateUI();
+                toastManager.show('Recipient removed', 'info');
+            }
+
+            calculateFee(amount, type) {
+                if (type === 'bank') {
+                    return amount * 0.01; // 1% for bank transfers
+                } else if (type === 'mobile') {
+                    // Mobile money fee structure
+                    if (amount <= 5000) return 100;
+                    if (amount <= 30000) return 500;
+                    if (amount <= 60000) return 1000;
+                    if (amount <= 100000) return 1500;
+                    if (amount <= 200000) return 2000;
+                    if (amount <= 500000) return 3500;
+                    if (amount <= 1000000) return 5000;
+                    return amount * 0.01;
+                }
+                return 0;
+            }
+
+            saveTransfers() {
+                localStorage.setItem('transfers', JSON.stringify(this.transfers));
+                this.updateUI();
+            }
+
+            updateUI() {
+                // Update transfers list
+                const transfersList = document.getElementById('recentTransfers');
+                if (transfersList) {
+                    if (this.transfers.length === 0) {
+                        transfersList.innerHTML = `
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-exchange-alt fa-3x mb-3"></i>
+                                <p>No recent transfers</p>
+                            </div>
+                        `;
+                    } else {
+                        transfersList.innerHTML = this.transfers.map(transfer => `
+                            <div class="transfer-item">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <h6 class="mb-1">To: ${transfer.recipientName}</h6>
+                                        <small class="text-muted">${new Date(transfer.date).toLocaleString()}</small>
+                                    </div>
+                                    <span class="badge bg-${
+                                        transfer.status === 'pending' ? 'warning' : 
+                                        transfer.status === 'success' ? 'success' : 'danger'
+                                    }">${transfer.status}</span>
+                                </div>
+                                <div class="transfer-details">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <small class="text-muted d-block">Amount</small>
+                                            <div class="text-warning">UGX ${transfer.amount.toLocaleString()}</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted d-block">Fee</small>
+                                            <div>UGX ${transfer.fee.toLocaleString()}</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted d-block">Reference</small>
+                                        <div>${transfer.reference || 'N/A'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+
+                // Update recipients list
+                const recipientsList = document.getElementById('recipients');
+                if (recipientsList) {
+                    if (this.recipients.length === 0) {
+                        recipientsList.innerHTML = `
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-users fa-3x mb-3"></i>
+                                <p>No saved recipients</p>
+                            </div>
+                        `;
+                    } else {
+                        recipientsList.innerHTML = this.recipients.map(recipient => `
+                            <div class="recipient-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">${recipient.name}</h6>
+                                    <small class="text-muted">
+                                        ${recipient.type === 'bank' ? recipient.bank : 'Mobile Money'} - 
+                                        ${recipient.accountNumber}
+                                    </small>
+                                </div>
+                                <div>
+                                    <button class="btn btn-warning btn-sm me-2" 
+                                            onclick="showTransferModal('${recipient.type}', ${recipient.id})">
+                                        Send Money
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm" 
+                                            onclick="transferManager.removeRecipient(${recipient.id})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            }
+
+            getRecipient(id) {
+                return this.recipients.find(r => r.id === id);
+            }
+        }
+
+        // Toast Notification System
+        class ToastManager {
+            show(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `toast-notification bg-${type}`;
+                toast.textContent = message;
+                
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('show');
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                        setTimeout(() => {
+                            document.body.removeChild(toast);
+                        }, 300);
+                    }, 2000);
+                }, 100);
+            }
+        }
+
+        // Initialize managers
+        const transferManager = new TransferManager();
+        const toastManager = new ToastManager();
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            transferManager.updateUI();
+        });
+
+        function showTransferModal(type, recipientId = null) {
+            const recipient = recipientId ? transferManager.getRecipient(recipientId) : null;
+            const providers = type === 'bank' ? transferManager.banks : transferManager.mobileProviders;
+
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'transferModal';
+            modal.innerHTML = `
+                <div class="modal-dialog">
+                    <div class="modal-content bg-dark text-light">
+                        <div class="modal-header border-secondary">
+                            <h5 class="modal-title">Send Money</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="transferForm">
+                                ${!recipient ? `
+                                    <div class="mb-3">
+                                        <label class="form-label">Recipient Name</label>
+                                        <input type="text" class="form-control bg-dark text-light border-secondary" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">${type === 'bank' ? 'Bank' : 'Provider'}</label>
+                                        <select class="form-select bg-dark text-light border-secondary" required>
+                                            <option value="">Select ${type === 'bank' ? 'Bank' : 'Provider'}</option>
+                                            ${providers.map(p => `
+                                                <option value="${p.id}">${p.name}</option>
+                                            `).join('')}
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Account Number</label>
+                                        <input type="text" class="form-control bg-dark text-light border-secondary" 
+                                               pattern="${type === 'bank' ? '[0-9]{10,14}' : '07[0-9]{8}'}" required>
+                                        <small class="text-muted">
+                                            ${type === 'bank' ? '10-14 digits' : 'Format: 07XXXXXXXX'}
+                                        </small>
+                                    </div>
+                                ` : `
+                                    <div class="recipient-details mb-4">
+                                        <h6>Recipient</h6>
+                                        <div class="d-flex align-items-center">
+                                            <div>
+                                                <div class="mb-1">${recipient.name}</div>
+                                                <small class="text-muted">
+                                                    ${recipient.type === 'bank' ? recipient.bank : 'Mobile Money'} - 
+                                                    ${recipient.accountNumber}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `}
+                                <div class="mb-3">
+                                    <label class="form-label">Amount (UGX)</label>
+                                    <input type="number" class="form-control bg-dark text-light border-secondary" 
+                                           min="1000" max="5000000" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Reference (Optional)</label>
+                                    <input type="text" class="form-control bg-dark text-light border-secondary">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer border-secondary">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-warning" onclick="processTransfer('${type}', ${recipientId})">
+                                Send Money
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            const modalInstance = new bootstrap.Modal(modal);
+            modalInstance.show();
+
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modal);
+            });
+
+            // Add amount input handler for fee calculation
+            const amountInput = modal.querySelector('input[type="number"]');
+            amountInput.addEventListener('input', () => {
+                const amount = parseFloat(amountInput.value) || 0;
+                const fee = transferManager.calculateFee(amount, type);
+                
+                const feeInfo = document.createElement('div');
     </script>
 </body>
 </html> 

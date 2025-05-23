@@ -185,83 +185,409 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Sample property data - In production, this would come from an API
-        const properties = [
-            {
-                id: 1,
-                title: "Modern Apartment in Kololo",
-                type: "Apartment",
-                price: 1500000,
-                location: "Kololo, Kampala",
-                bedrooms: 2,
-                bathrooms: 2,
-                area: 120,
-                image: "https://example.com/apartment1.jpg",
-                features: ["Parking", "Security", "Furnished"],
-                listingType: "Rent"
-            },
-            // Add more properties...
-        ];
+        // Property Management System
+        class PropertyManager {
+            constructor() {
+                this.properties = [
+                    {
+                        id: 1,
+                        title: "Modern Apartment in Kololo",
+                        type: "Apartment",
+                        price: 1500000,
+                        location: "Kololo, Kampala",
+                        bedrooms: 2,
+                        bathrooms: 2,
+                        area: 120,
+                        image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500",
+                        images: [
+                            "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=500",
+                            "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500",
+                            "https://images.unsplash.com/photo-1502005097973-6a7082348e28?w=500"
+                        ],
+                        features: ["Parking", "Security", "Furnished"],
+                        listingType: "Rent",
+                        description: "Luxurious 2-bedroom apartment with modern amenities",
+                        coordinates: [0.3476, 32.5825]
+                    },
+                    {
+                        id: 2,
+                        title: "Family Home in Ntinda",
+                        type: "House",
+                        price: 450000000,
+                        location: "Ntinda, Kampala",
+                        bedrooms: 4,
+                        bathrooms: 3,
+                        area: 250,
+                        image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500",
+                        images: [
+                            "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=500",
+                            "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500",
+                            "https://images.unsplash.com/photo-1600607687644-aac4c3eac7f4?w=500"
+                        ],
+                        features: ["Garden", "Garage", "Security"],
+                        listingType: "Sale",
+                        description: "Spacious family home with beautiful garden",
+                        coordinates: [0.3557, 32.6183]
+                    },
+                    {
+                        id: 3,
+                        title: "Commercial Space in City Center",
+                        type: "Commercial",
+                        price: 3500000,
+                        location: "Central Business District, Kampala",
+                        area: 180,
+                        image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=500",
+                        images: [
+                            "https://images.unsplash.com/photo-1497366216548-37526070297c?w=500",
+                            "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=500"
+                        ],
+                        features: ["24/7 Access", "Parking", "Security"],
+                        listingType: "Rent",
+                        description: "Prime commercial space in the heart of Kampala",
+                        coordinates: [0.3136, 32.5811]
+                    }
+                ];
+
+                this.savedProperties = JSON.parse(localStorage.getItem('savedProperties')) || [];
+                this.filters = {
+                    type: 'All',
+                    listingType: 'All',
+                    minPrice: 0,
+                    maxPrice: Infinity,
+                    bedrooms: 'Any',
+                    features: []
+                };
+            }
+
+            getProperties(filters = this.filters) {
+                return this.properties.filter(property => {
+                    const typeMatch = filters.type === 'All' || property.type === filters.type;
+                    const listingMatch = filters.listingType === 'All' || property.listingType === filters.listingType;
+                    const priceMatch = property.price >= filters.minPrice && 
+                                     (filters.maxPrice === Infinity || property.price <= filters.maxPrice);
+                    const bedroomMatch = filters.bedrooms === 'Any' || 
+                                       (property.bedrooms && property.bedrooms.toString() === filters.bedrooms);
+                    const featureMatch = filters.features.length === 0 || 
+                                       filters.features.every(f => property.features.includes(f));
+                    
+                    return typeMatch && listingMatch && priceMatch && bedroomMatch && featureMatch;
+                });
+            }
+
+            toggleSaved(propertyId) {
+                const index = this.savedProperties.indexOf(propertyId);
+                if (index === -1) {
+                    this.savedProperties.push(propertyId);
+                    toastManager.show('Property saved to favorites', 'success');
+                } else {
+                    this.savedProperties.splice(index, 1);
+                    toastManager.show('Property removed from favorites', 'info');
+                }
+                localStorage.setItem('savedProperties', JSON.stringify(this.savedProperties));
+                this.updateUI();
+            }
+
+            isSaved(propertyId) {
+                return this.savedProperties.includes(propertyId);
+            }
+
+            applyFilters(newFilters) {
+                this.filters = { ...this.filters, ...newFilters };
+                this.updateUI();
+            }
+
+            updateUI() {
+                const grid = document.getElementById('propertiesGrid');
+                const properties = this.getProperties();
+
+                if (properties.length === 0) {
+                    grid.innerHTML = `
+                        <div class="col-12 text-center text-muted py-5">
+                            <i class="fas fa-home fa-3x mb-3"></i>
+                            <h5>No properties found</h5>
+                            <p>Try adjusting your filters</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                grid.innerHTML = properties.map(property => `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="property-card">
+                            <div class="position-relative">
+                                <img src="${property.image}" class="w-100 property-image">
+                                <div class="price-tag">UGX ${property.price.toLocaleString()}${property.listingType === 'Rent' ? '/mo' : ''}</div>
+                                <div class="property-type">${property.listingType}</div>
+                                <button class="favorite-btn ${this.isSaved(property.id) ? 'active' : ''}"
+                                        onclick="propertyManager.toggleSaved(${property.id})">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                            <div class="p-3">
+                                <h6 class="mb-2">${property.title}</h6>
+                                <div class="text-muted mb-3">
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    ${property.location}
+                                </div>
+                                <div class="property-features mb-3">
+                                    ${property.bedrooms ? `<span><i class="fas fa-bed me-1"></i>${property.bedrooms} beds</span>` : ''}
+                                    ${property.bathrooms ? `<span><i class="fas fa-bath me-1"></i>${property.bathrooms} baths</span>` : ''}
+                                    <span><i class="fas fa-ruler-combined me-1"></i>${property.area}m²</span>
+                                </div>
+                                <button class="btn btn-warning w-100" onclick="viewProperty(${property.id})">
+                                    View Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Toast Notification System
+        class ToastManager {
+            show(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `toast-notification bg-${type}`;
+                toast.textContent = message;
+                
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('show');
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                        setTimeout(() => {
+                            document.body.removeChild(toast);
+                        }, 300);
+                    }, 2000);
+                }, 100);
+            }
+        }
+
+        // Initialize managers
+        const propertyManager = new PropertyManager();
+        const toastManager = new ToastManager();
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', () => {
-            loadProperties();
+            propertyManager.updateUI();
+            initMap();
         });
 
-        function loadProperties(filter = 'All') {
-            const grid = document.getElementById('propertiesGrid');
-            const filteredProperties = filter === 'All' 
-                ? properties 
-                : properties.filter(p => p.type === filter || p.listingType === filter);
+        function applyFilters() {
+            const type = document.querySelector('select[name="propertyType"]').value;
+            const minPrice = parseFloat(document.querySelector('input[name="minPrice"]').value) || 0;
+            const maxPrice = parseFloat(document.querySelector('input[name="maxPrice"]').value) || Infinity;
+            const bedrooms = document.querySelector('select[name="bedrooms"]').value;
+            const features = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(cb => cb.id);
 
-            grid.innerHTML = filteredProperties.map(property => `
-                <div class="col-md-6 col-lg-4">
-                    <div class="property-card">
-                        <div class="position-relative">
-                            <img src="${property.image}" class="w-100 property-image">
-                            <div class="price-tag">UGX ${property.price.toLocaleString()}/mo</div>
-                            <div class="property-type">${property.listingType}</div>
+            propertyManager.applyFilters({
+                type,
+                minPrice,
+                maxPrice,
+                bedrooms,
+                features
+            });
+
+            bootstrap.Modal.getInstance(document.getElementById('filtersModal')).hide();
+            toastManager.show('Filters applied', 'success');
+        }
+
+        function viewProperty(id) {
+            const property = propertyManager.properties.find(p => p.id === id);
+            if (!property) return;
+
+            // Create and show property details modal
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'propertyModal';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content bg-dark text-light">
+                        <div class="modal-header border-secondary">
+                            <h5 class="modal-title">${property.title}</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
-                        <div class="p-3">
-                            <h6 class="mb-2">${property.title}</h6>
-                            <div class="text-muted mb-3">
-                                <i class="fas fa-map-marker-alt me-1"></i>
-                                ${property.location}
+                        <div class="modal-body">
+                            <div id="propertyCarousel" class="carousel slide mb-4" data-bs-ride="carousel">
+                                <div class="carousel-inner">
+                                    ${property.images.map((img, i) => `
+                                        <div class="carousel-item ${i === 0 ? 'active' : ''}">
+                                            <img src="${img}" class="d-block w-100" style="height: 300px; object-fit: cover;">
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <button class="carousel-control-prev" type="button" data-bs-target="#propertyCarousel" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon"></span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#propertyCarousel" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon"></span>
+                                </button>
                             </div>
-                            <div class="property-features mb-3">
-                                <span><i class="fas fa-bed me-1"></i>${property.bedrooms} beds</span>
-                                <span><i class="fas fa-bath me-1"></i>${property.bathrooms} baths</span>
-                                <span><i class="fas fa-ruler-combined me-1"></i>${property.area}m²</span>
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h6>Details</h6>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-tag me-2"></i>UGX ${property.price.toLocaleString()}${property.listingType === 'Rent' ? '/mo' : ''}</li>
+                                        <li><i class="fas fa-map-marker-alt me-2"></i>${property.location}</li>
+                                        <li><i class="fas fa-ruler-combined me-2"></i>${property.area}m²</li>
+                                        ${property.bedrooms ? `<li><i class="fas fa-bed me-2"></i>${property.bedrooms} Bedrooms</li>` : ''}
+                                        ${property.bathrooms ? `<li><i class="fas fa-bath me-2"></i>${property.bathrooms} Bathrooms</li>` : ''}
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Features</h6>
+                                    <ul class="list-unstyled">
+                                        ${property.features.map(feature => `
+                                            <li><i class="fas fa-check me-2"></i>${feature}</li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
                             </div>
-                            <button class="btn btn-warning w-100" onclick="viewProperty(${property.id})">
-                                View Details
+                            <div class="mb-4">
+                                <h6>Description</h6>
+                                <p>${property.description}</p>
+                            </div>
+                            <div id="propertyMap" style="height: 200px; border-radius: 10px;"></div>
+                        </div>
+                        <div class="modal-footer border-secondary">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-warning" onclick="contactAgent(${property.id})">
+                                Contact Agent
                             </button>
                         </div>
                     </div>
                 </div>
-            `).join('');
-        }
+            `;
 
-        function viewProperty(id) {
-            // Add property viewing logic here
-            window.location.href = `/services/housing/property.html?id=${id}`;
-        }
+            document.body.appendChild(modal);
+            const modalInstance = new bootstrap.Modal(modal);
+            modalInstance.show();
 
-        function applyFilters() {
-            // Add filter application logic here
-            const modal = bootstrap.Modal.getInstance(document.getElementById('filtersModal'));
-            modal.hide();
-            loadProperties(); // Reload with filters
-        }
-
-        // Event Listeners
-        document.querySelectorAll('.filter-pill').forEach(pill => {
-            pill.addEventListener('click', () => {
-                document.querySelector('.filter-pill.active').classList.remove('active');
-                pill.classList.add('active');
-                loadProperties(pill.textContent);
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modal);
             });
-        });
+
+            // Initialize map for the property
+            setTimeout(() => {
+                const map = L.map('propertyMap').setView(property.coordinates, 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                L.marker(property.coordinates).addTo(map);
+            }, 500);
+        }
+
+        function contactAgent(propertyId) {
+            const property = propertyManager.properties.find(p => p.id === propertyId);
+            if (!property) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'contactModal';
+            modal.innerHTML = `
+                <div class="modal-dialog">
+                    <div class="modal-content bg-dark text-light">
+                        <div class="modal-header border-secondary">
+                            <h5 class="modal-title">Contact Agent</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="contactForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Your Name</label>
+                                    <input type="text" class="form-control bg-dark text-light border-secondary" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control bg-dark text-light border-secondary" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control bg-dark text-light border-secondary" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Message</label>
+                                    <textarea class="form-control bg-dark text-light border-secondary" rows="3" required>Hi, I'm interested in ${property.title}.</textarea>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer border-secondary">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-warning" onclick="sendMessage()">Send Message</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            const modalInstance = new bootstrap.Modal(modal);
+            modalInstance.show();
+
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modal);
+            });
+        }
+
+        function sendMessage() {
+            const form = document.getElementById('contactForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            bootstrap.Modal.getInstance(document.getElementById('contactModal')).hide();
+            toastManager.show('Message sent successfully! An agent will contact you soon.', 'success');
+        }
+
+        // Add styling
+        const style = document.createElement('style');
+        style.textContent = `
+            .favorite-btn {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                background: rgba(255,255,255,0.9);
+                border: none;
+                width: 35px;
+                height: 35px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            
+            .favorite-btn i {
+                color: #aaa;
+                transition: all 0.3s ease;
+            }
+            
+            .favorite-btn.active i {
+                color: #e74c3c;
+            }
+            
+            .toast-notification {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%) translateY(100px);
+                padding: 12px 24px;
+                border-radius: 10px;
+                color: white;
+                font-weight: 500;
+                z-index: 9999;
+                opacity: 0;
+                transition: all 0.3s ease;
+            }
+            
+            .toast-notification.show {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html> 

@@ -249,6 +249,409 @@
             // Add bundle purchase logic here
             alert('Bundle purchase successful!');
         }
+
+        // Airtime Service Manager
+        class AirtimeManager {
+            constructor() {
+                this.providers = {
+                    mtn: {
+                        name: 'MTN',
+                        logo: 'https://www.mtn.co.ug/wp-content/uploads/2021/03/MTN-Logo.png',
+                        products: {
+                            data: [
+                                { id: 'daily100', name: 'Daily 100MB', price: 1000, validity: '24 hours' },
+                                { id: 'weekly1gb', name: 'Weekly 1GB', price: 5000, validity: '7 days' },
+                                { id: 'monthly5gb', name: 'Monthly 5GB', price: 20000, validity: '30 days' },
+                                { id: 'monthly10gb', name: 'Monthly 10GB', price: 35000, validity: '30 days' }
+                            ],
+                            voice: [
+                                { id: 'daily30', name: 'Daily 30 mins', price: 1500, validity: '24 hours' },
+                                { id: 'weekly120', name: 'Weekly 120 mins', price: 5000, validity: '7 days' },
+                                { id: 'monthly300', name: 'Monthly 300 mins', price: 15000, validity: '30 days' }
+                            ]
+                        }
+                    },
+                    airtel: {
+                        name: 'Airtel',
+                        logo: 'https://www.airtel.co.ug/assets/images/logo.png',
+                        products: {
+                            data: [
+                                { id: 'daily150', name: 'Daily 150MB', price: 1000, validity: '24 hours' },
+                                { id: 'weekly2gb', name: 'Weekly 2GB', price: 7000, validity: '7 days' },
+                                { id: 'monthly6gb', name: 'Monthly 6GB', price: 25000, validity: '30 days' },
+                                { id: 'monthly12gb', name: 'Monthly 12GB', price: 40000, validity: '30 days' }
+                            ],
+                            voice: [
+                                { id: 'daily40', name: 'Daily 40 mins', price: 1500, validity: '24 hours' },
+                                { id: 'weekly150', name: 'Weekly 150 mins', price: 6000, validity: '7 days' },
+                                { id: 'monthly400', name: 'Monthly 400 mins', price: 20000, validity: '30 days' }
+                            ]
+                        }
+                    }
+                };
+
+                this.transactions = JSON.parse(localStorage.getItem('airtimeTransactions')) || [];
+                this.favorites = JSON.parse(localStorage.getItem('airtimeFavorites')) || [];
+            }
+
+            purchaseAirtime(details) {
+                const transaction = {
+                    id: Date.now(),
+                    ...details,
+                    status: 'pending',
+                    date: new Date().toISOString()
+                };
+
+                this.transactions.unshift(transaction);
+                this.saveTransactions();
+
+                // Add to main transaction history
+                const transactionManager = window.parent.transactionManager;
+                if (transactionManager) {
+                    transactionManager.addTransaction({
+                        type: 'Airtime Purchase',
+                        amount: -details.amount,
+                        description: `${details.provider} ${details.type} - ${details.phone}`
+                    });
+                }
+
+                // Simulate processing
+                setTimeout(() => {
+                    transaction.status = Math.random() > 0.1 ? 'success' : 'failed';
+                    this.saveTransactions();
+                    this.updateUI();
+                    
+                    toastManager.show(
+                        transaction.status === 'success' 
+                            ? 'Purchase successful!' 
+                            : 'Purchase failed. Please try again.',
+                        transaction.status === 'success' ? 'success' : 'danger'
+                    );
+                }, 2000);
+            }
+
+            toggleFavorite(phone) {
+                const index = this.favorites.indexOf(phone);
+                if (index === -1) {
+                    this.favorites.push(phone);
+                    toastManager.show('Added to favorites', 'success');
+                } else {
+                    this.favorites.splice(index, 1);
+                    toastManager.show('Removed from favorites', 'info');
+                }
+                localStorage.setItem('airtimeFavorites', JSON.stringify(this.favorites));
+                this.updateUI();
+            }
+
+            isFavorite(phone) {
+                return this.favorites.includes(phone);
+            }
+
+            saveTransactions() {
+                localStorage.setItem('airtimeTransactions', JSON.stringify(this.transactions));
+                this.updateUI();
+            }
+
+            updateUI() {
+                // Update transactions list
+                const transactionsList = document.getElementById('recentTransactions');
+                if (transactionsList) {
+                    if (this.transactions.length === 0) {
+                        transactionsList.innerHTML = `
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-receipt fa-3x mb-3"></i>
+                                <p>No recent transactions</p>
+                            </div>
+                        `;
+                    } else {
+                        transactionsList.innerHTML = this.transactions.map(tx => `
+                            <div class="transaction-item">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <h6 class="mb-1">${tx.provider} ${tx.type}</h6>
+                                        <small class="text-muted">${new Date(tx.date).toLocaleString()}</small>
+                                    </div>
+                                    <span class="badge bg-${
+                                        tx.status === 'pending' ? 'warning' : 
+                                        tx.status === 'success' ? 'success' : 'danger'
+                                    }">${tx.status}</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="text-muted">${tx.phone}</div>
+                                    <div class="text-warning">UGX ${tx.amount.toLocaleString()}</div>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+
+                // Update favorites list
+                const favoritesList = document.getElementById('favoriteNumbers');
+                if (favoritesList) {
+                    if (this.favorites.length === 0) {
+                        favoritesList.innerHTML = `
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-star fa-3x mb-3"></i>
+                                <p>No favorite numbers</p>
+                            </div>
+                        `;
+                    } else {
+                        favoritesList.innerHTML = this.favorites.map(phone => `
+                            <div class="favorite-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">${phone}</h6>
+                                    <small class="text-muted">${this.getProviderFromPhone(phone)}</small>
+                                </div>
+                                <button class="btn btn-warning btn-sm" onclick="quickPurchase('${phone}')">
+                                    Quick Buy
+                                </button>
+                            </div>
+                        `).join('');
+                    }
+                }
+            }
+
+            getProviderFromPhone(phone) {
+                // Simple provider detection based on prefix
+                if (phone.startsWith('077') || phone.startsWith('078')) {
+                    return 'MTN';
+                } else if (phone.startsWith('075') || phone.startsWith('070')) {
+                    return 'Airtel';
+                }
+                return 'Unknown';
+            }
+
+            validatePhone(phone) {
+                return /^07[0-9]{8}$/.test(phone);
+            }
+        }
+
+        // Toast Notification System
+        class ToastManager {
+            show(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `toast-notification bg-${type}`;
+                toast.textContent = message;
+                
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.classList.add('show');
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                        setTimeout(() => {
+                            document.body.removeChild(toast);
+                        }, 300);
+                    }, 2000);
+                }, 100);
+            }
+        }
+
+        // Initialize managers
+        const airtimeManager = new AirtimeManager();
+        const toastManager = new ToastManager();
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            airtimeManager.updateUI();
+            updateProductsUI('mtn', 'data');
+        });
+
+        function updateProductsUI(provider, type) {
+            const products = airtimeManager.providers[provider].products[type];
+            const container = document.getElementById('productsContainer');
+            
+            container.innerHTML = products.map(product => `
+                <div class="col-md-6 col-lg-3">
+                    <div class="product-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">${product.name}</h6>
+                            <span class="badge bg-warning">UGX ${product.price.toLocaleString()}</span>
+                        </div>
+                        <div class="text-muted mb-3">Valid for ${product.validity}</div>
+                        <button class="btn btn-warning w-100" 
+                                onclick="showPurchaseModal('${provider}', '${type}', '${product.id}')">
+                            Buy Now
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showPurchaseModal(provider, type, productId) {
+            const product = airtimeManager.providers[provider].products[type]
+                .find(p => p.id === productId);
+            if (!product) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'purchaseModal';
+            modal.innerHTML = `
+                <div class="modal-dialog">
+                    <div class="modal-content bg-dark text-light">
+                        <div class="modal-header border-secondary">
+                            <h5 class="modal-title">${product.name}</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="product-details mb-4">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Price</small>
+                                        <div>UGX ${product.price.toLocaleString()}</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Validity</small>
+                                        <div>${product.validity}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <form id="purchaseForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Phone Number</label>
+                                    <div class="input-group">
+                                        <input type="tel" class="form-control bg-dark text-light border-secondary" 
+                                               pattern="07[0-9]{8}" required>
+                                        <button class="btn btn-outline-warning" type="button" onclick="toggleFavorite()">
+                                            <i class="fas fa-star"></i>
+                                        </button>
+                                    </div>
+                                    <small class="text-muted">Format: 07XXXXXXXX</small>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer border-secondary">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-warning" 
+                                    onclick="processPurchase('${provider}', '${type}', '${product.id}')">
+                                Buy Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            const modalInstance = new bootstrap.Modal(modal);
+            modalInstance.show();
+
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modal);
+            });
+
+            // Update favorite button state
+            const phoneInput = modal.querySelector('input[type="tel"]');
+            const favoriteBtn = modal.querySelector('.btn-outline-warning');
+            
+            phoneInput.addEventListener('input', () => {
+                const phone = phoneInput.value;
+                if (airtimeManager.validatePhone(phone)) {
+                    favoriteBtn.disabled = false;
+                    favoriteBtn.innerHTML = `
+                        <i class="fas fa-star${airtimeManager.isFavorite(phone) ? ' text-warning' : ''}"></i>
+                    `;
+                } else {
+                    favoriteBtn.disabled = true;
+                }
+            });
+        }
+
+        function toggleFavorite() {
+            const phone = document.querySelector('#purchaseForm input[type="tel"]').value;
+            if (!airtimeManager.validatePhone(phone)) return;
+            
+            airtimeManager.toggleFavorite(phone);
+            
+            // Update favorite button
+            const btn = document.querySelector('#purchaseModal .btn-outline-warning i');
+            btn.classList.toggle('text-warning');
+        }
+
+        function processPurchase(provider, type, productId) {
+            const form = document.getElementById('purchaseForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const phone = form.querySelector('input[type="tel"]').value;
+            const product = airtimeManager.providers[provider].products[type]
+                .find(p => p.id === productId);
+
+            airtimeManager.purchaseAirtime({
+                provider: airtimeManager.providers[provider].name,
+                type: type === 'data' ? 'Data Bundle' : 'Voice Bundle',
+                productName: product.name,
+                amount: product.price,
+                phone
+            });
+
+            bootstrap.Modal.getInstance(document.getElementById('purchaseModal')).hide();
+            toastManager.show('Processing purchase...', 'info');
+        }
+
+        function quickPurchase(phone) {
+            const provider = airtimeManager.getProviderFromPhone(phone).toLowerCase();
+            showPurchaseModal(provider, 'data', airtimeManager.providers[provider].products.data[0].id);
+            
+            // Pre-fill phone number
+            setTimeout(() => {
+                const input = document.querySelector('#purchaseForm input[type="tel"]');
+                input.value = phone;
+                input.dispatchEvent(new Event('input'));
+            }, 500);
+        }
+
+        // Add styling
+        const style = document.createElement('style');
+        style.textContent = `
+            .product-card {
+                background: #2d2d44;
+                padding: 15px;
+                border-radius: 10px;
+                margin-bottom: 15px;
+                transition: all 0.3s ease;
+            }
+            
+            .product-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            }
+            
+            .transaction-item {
+                background: #2d2d44;
+                padding: 15px;
+                border-radius: 10px;
+                margin-bottom: 10px;
+            }
+            
+            .favorite-item {
+                background: #2d2d44;
+                padding: 15px;
+                border-radius: 10px;
+                margin-bottom: 10px;
+            }
+            
+            .toast-notification {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%) translateY(100px);
+                padding: 12px 24px;
+                border-radius: 10px;
+                color: white;
+                font-weight: 500;
+                z-index: 9999;
+                opacity: 0;
+                transition: all 0.3s ease;
+            }
+            
+            .toast-notification.show {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html> 
