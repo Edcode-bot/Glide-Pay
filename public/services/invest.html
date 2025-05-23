@@ -1,345 +1,425 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlidePay - Mini Investment Hub</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body {
-            background: #1c1c2b;
-            color: #fff;
-        }
-        .navbar {
-            background: #2d2d44;
-        }
-        .summary-card {
-            background: linear-gradient(45deg, #2d2d44, #3d3d54);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .investment-card {
-            background: #2d2d44;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            transition: transform 0.3s ease;
-            cursor: pointer;
-        }
-        .investment-card:hover {
-            transform: translateY(-5px);
-        }
-        .apy-badge {
-            background: rgba(255, 167, 38, 0.2);
-            color: #ffa726;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-        }
-        .min-amount {
-            font-size: 0.9rem;
-            color: #aaa;
-        }
-        .btn-invest {
-            background: #ffa726;
-            color: #1c1c2b;
-            border: none;
-            border-radius: 10px;
-            padding: 8px 20px;
-            transition: all 0.3s ease;
-        }
-        .btn-invest:hover {
-            background: #ff9800;
-            transform: translateY(-2px);
-        }
-        .modal-content {
-            background: #2d2d44;
-            color: #fff;
-        }
-        .form-control {
-            background: #1c1c2b;
-            border: 1px solid #3d3d54;
-            color: #fff;
-        }
-        .form-control:focus {
-            background: #1c1c2b;
-            border-color: #ffa726;
-            color: #fff;
-            box-shadow: none;
-        }
-        .toast-notification {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            padding: 12px 24px;
-            border-radius: 10px;
-            color: white;
-            font-weight: 500;
-            z-index: 9999;
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-        .toast-notification.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini Investment Hub - GlidePay</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #ff8a00;
+      --primary-dark: #e67a00;
+      --dark-bg: #1c1c2b;
+      --card-bg: #2d2d44;
+      --text-light: #fff;
+      --text-muted: #aaa;
+    }
+
+    body {
+      background: var(--dark-bg);
+      color: var(--text-light);
+      font-family: 'Poppins', sans-serif;
+      padding-bottom: 80px;
+    }
+
+    .navbar-custom {
+      background: rgba(45, 45, 68, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .wallet-card {
+      background: linear-gradient(135deg, var(--primary), #e52e71);
+      border-radius: 20px;
+      padding: 1.5rem;
+      margin: 1rem 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .investment-card {
+      background: var(--card-bg);
+      border-radius: 15px;
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+      transition: transform 0.3s ease;
+      cursor: pointer;
+    }
+
+    .investment-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .investment-logo {
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .roi-badge {
+      background: rgba(46, 204, 113, 0.2);
+      color: #2ecc71;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+    }
+
+    .category-tabs {
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+      padding: 0.5rem 0;
+      margin: 1rem 0;
+    }
+
+    .category-tab {
+      background: var(--card-bg);
+      border: none;
+      color: var(--text-light);
+      padding: 0.5rem 1.5rem;
+      border-radius: 20px;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+    }
+
+    .category-tab.active {
+      background: var(--primary);
+    }
+
+    .portfolio-item {
+      background: var(--card-bg);
+      border-radius: 15px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .education-card {
+      background: linear-gradient(45deg, var(--card-bg), rgba(45, 45, 68, 0.8));
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      border: none;
+      padding: 0.8rem 2rem;
+      border-radius: 10px;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      color: var(--text-light);
+    }
+
+    @media (max-width: 768px) {
+      .wallet-card {
+        padding: 1rem;
+      }
+      
+      .category-tabs {
+        padding: 0.5rem;
+      }
+    }
+  </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
-        <div class="container">
-            <a class="navbar-brand" href="/main.html">
-                <i class="fas fa-arrow-left me-2"></i>Mini Investment Hub
-            </a>
-            <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#historyModal">
-                <i class="fas fa-history"></i>
-            </button>
-        </div>
-    </nav>
+  <!-- Top Navigation -->
+  <div class="navbar-custom">
+    <div class="container">
+      <div class="d-flex align-items-center">
+        <a href="/main.html" class="text-light me-3">
+          <i class="fas fa-arrow-left"></i>
+        </a>
+        <h5 class="mb-0">Mini Investment Hub</h5>
+      </div>
+    </div>
+  </div>
 
-    <!-- Main Content -->
-    <div class="container py-4">
-        <!-- Investment Summary -->
-        <div class="summary-card">
-            <div class="row">
-                <div class="col-6">
-                    <small class="text-muted">Total Investments</small>
-                    <h3 class="mb-0 text-warning" id="totalInvestments">UGX 0</h3>
-                </div>
-                <div class="col-6 text-end">
-                    <small class="text-muted">Estimated Returns</small>
-                    <h3 class="mb-0 text-warning" id="estimatedReturns">UGX 0</h3>
-                </div>
-            </div>
-        </div>
-
-        <!-- Investment Options -->
-        <div class="row g-4" id="investmentGrid">
-            <!-- Investment cards will be added dynamically -->
-        </div>
+  <div class="container">
+    <!-- Wallet Summary -->
+    <div class="wallet-card">
+      <small class="text-light opacity-75">Total Investable Balance</small>
+      <h2 class="mb-3">UGX <span id="investable-balance">0</span></h2>
+      <button class="btn btn-light px-4" onclick="showAddFundsModal()">
+        <i class="fas fa-plus me-2"></i>Add Funds
+      </button>
     </div>
 
-    <!-- Investment Details Modal -->
-    <div class="modal fade" id="investmentModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header border-secondary">
-                    <h5 class="modal-title" id="modalTitle">Investment Details</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="investment-details mb-4">
-                        <div class="mb-3" id="modalDescription"></div>
-                        <div class="row mb-3">
-                            <div class="col-6">
-                                <small class="text-muted">Annual Percentage Yield</small>
-                                <div class="text-warning" id="modalAPY"></div>
-                            </div>
-                            <div class="col-6">
-                                <small class="text-muted">Minimum Investment</small>
-                                <div id="modalMinAmount"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <form id="investmentForm">
-                        <div class="mb-3">
-                            <label class="form-label">Investment Amount (UGX)</label>
-                            <input type="number" class="form-control" id="investmentAmount" required>
-                            <div class="form-text text-muted">Enter amount in UGX</div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-warning" onclick="confirmInvestment()">Confirm Investment</button>
-                </div>
-            </div>
-        </div>
+    <!-- Investment Categories -->
+    <div class="category-tabs">
+      <button class="category-tab active" onclick="filterInvestments('all')">All</button>
+      <button class="category-tab" onclick="filterInvestments('agriculture')">Agriculture</button>
+      <button class="category-tab" onclick="filterInvestments('tech')">Tech</button>
+      <button class="category-tab" onclick="filterInvestments('green')">Green Energy</button>
+      <button class="category-tab" onclick="filterInvestments('realestate')">Real Estate</button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Investment Manager
-        class InvestmentManager {
-            constructor() {
-                this.investments = [
-                    {
-                        id: 'celo',
-                        name: 'CELO Staking',
-                        description: 'Stake CELO tokens and earn rewards while supporting the network's security and operations.',
-                        apy: 15.5,
-                        minAmount: 50000,
-                        risk: 'Medium',
-                        lockPeriod: '30 days',
-                        icon: 'fa-coins'
-                    },
-                    {
-                        id: 'stable',
-                        name: 'Stable Yield Pool',
-                        description: 'Earn stable returns through a diversified pool of lending opportunities.',
-                        apy: 12.0,
-                        minAmount: 100000,
-                        risk: 'Low',
-                        lockPeriod: '7 days',
-                        icon: 'fa-shield'
-                    },
-                    {
-                        id: 'community',
-                        name: 'Community Fund',
-                        description: 'Support local businesses while earning competitive returns.',
-                        apy: 18.0,
-                        minAmount: 25000,
-                        risk: 'Medium-High',
-                        lockPeriod: '90 days',
-                        icon: 'fa-users'
-                    }
-                ];
+    <!-- Investment Opportunities -->
+    <div class="row g-3" id="investment-opportunities">
+      <!-- Investment cards will be dynamically added here -->
+    </div>
 
-                this.userInvestments = JSON.parse(localStorage.getItem('userInvestments')) || [];
-                this.updateSummary();
-                this.renderInvestments();
-            }
+    <!-- My Portfolio -->
+    <div class="mt-4">
+      <h5 class="mb-3">My Portfolio</h5>
+      <div id="portfolio-list">
+        <!-- Portfolio items will be dynamically added here -->
+      </div>
+    </div>
 
-            renderInvestments() {
-                const grid = document.getElementById('investmentGrid');
-                grid.innerHTML = this.investments.map(inv => `
-                    <div class="col-md-6 col-lg-4">
-                        <div class="investment-card" onclick="showInvestmentDetails('${inv.id}')">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="bg-warning rounded-circle p-3 me-3">
-                                    <i class="fas ${inv.icon} fa-lg text-dark"></i>
-                                </div>
-                                <div>
-                                    <h5 class="mb-1">${inv.name}</h5>
-                                    <span class="apy-badge">${inv.apy}% APY</span>
-                                </div>
-                            </div>
-                            <div class="min-amount mb-3">
-                                Min. Investment: UGX ${inv.minAmount.toLocaleString()}
-                            </div>
-                            <button class="btn btn-invest w-100">View Details</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
+    <!-- Education Section -->
+    <div class="education-card">
+      <h5>New to Investing?</h5>
+      <p class="text-muted">Learn the basics of investing and make informed decisions.</p>
+      <div class="d-flex gap-2">
+        <a href="#" class="btn btn-outline-light btn-sm">Investment Guide</a>
+        <a href="#" class="btn btn-outline-light btn-sm">Risk Management</a>
+      </div>
+    </div>
+  </div>
 
-            addInvestment(investmentId, amount) {
-                const investment = this.investments.find(inv => inv.id === investmentId);
-                if (!investment) return false;
+  <!-- Investment Details Modal -->
+  <div class="modal fade" id="investmentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0">
+          <h5 class="modal-title" id="modalTitle">Investment Details</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="modalBody">
+          <!-- Investment details will be dynamically added here -->
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="investNow()">Invest Now</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                const newInvestment = {
-                    id: Date.now(),
-                    investmentId,
-                    amount: parseFloat(amount),
-                    date: new Date().toISOString(),
-                    apy: investment.apy
-                };
+  <!-- Add Funds Modal -->
+  <div class="modal fade" id="addFundsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0">
+          <h5 class="modal-title">Add Investment Funds</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Amount (UGX)</label>
+            <input type="number" class="form-control" id="fundAmount" placeholder="Enter amount">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Payment Method</label>
+            <select class="form-select" id="paymentMethod">
+              <option value="wallet">GlidePay Wallet</option>
+              <option value="mtn">MTN Mobile Money</option>
+              <option value="airtel">Airtel Money</option>
+              <option value="bank">Bank Transfer</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="processFunds()">Add Funds</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                this.userInvestments.push(newInvestment);
-                localStorage.setItem('userInvestments', JSON.stringify(this.userInvestments));
-                this.updateSummary();
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Sample investment opportunities data
+    const investments = [
+      {
+        id: 1,
+        title: "Solar Fund UG",
+        category: "green",
+        roi: "12% Annual ROI",
+        minAmount: 100000,
+        description: "Invest in Uganda's growing solar energy sector",
+        logo: "☀️"
+      },
+      {
+        id: 2,
+        title: "Tech Startups Fund",
+        category: "tech",
+        roi: "15% Annual ROI",
+        minAmount: 250000,
+        description: "Support innovative local tech startups",
+        logo: "💻"
+      },
+      {
+        id: 3,
+        title: "Kampala Real Estate",
+        category: "realestate",
+        roi: "10% Annual ROI",
+        minAmount: 500000,
+        description: "Premium real estate investment opportunities",
+        logo: "🏢"
+      },
+      {
+        id: 4,
+        title: "Agri-Tech Fund",
+        category: "agriculture",
+        roi: "14% Annual ROI",
+        minAmount: 150000,
+        description: "Modern farming technology investments",
+        logo: "🌾"
+      }
+    ];
 
-                // Add to main transaction history
-                const transactionManager = window.parent.transactionManager;
-                if (transactionManager) {
-                    transactionManager.addTransaction({
-                        type: 'Investment',
-                        amount: -amount,
-                        description: `${investment.name} Investment`
-                    });
-                }
+    // Sample portfolio data
+    const portfolio = [
+      {
+        id: 1,
+        project: "Solar Fund UG",
+        invested: 200000,
+        roi: 24000,
+        status: "Active"
+      },
+      {
+        id: 2,
+        project: "Tech Startups Fund",
+        invested: 300000,
+        roi: 45000,
+        status: "Active"
+      }
+    ];
 
-                return true;
-            }
+    // Initialize page
+    window.onload = function() {
+      displayInvestments('all');
+      displayPortfolio();
+      updateBalance();
+    };
 
-            updateSummary() {
-                const totalInvested = this.userInvestments.reduce((sum, inv) => sum + inv.amount, 0);
-                const estimatedReturns = this.userInvestments.reduce((sum, inv) => {
-                    const investment = this.investments.find(i => i.id === inv.investmentId);
-                    return sum + (inv.amount * (investment.apy / 100));
-                }, 0);
+    function displayInvestments(category) {
+      const container = document.getElementById('investment-opportunities');
+      const filtered = category === 'all' ? 
+        investments : 
+        investments.filter(inv => inv.category === category);
 
-                document.getElementById('totalInvestments').textContent = 
-                    `UGX ${totalInvested.toLocaleString()}`;
-                document.getElementById('estimatedReturns').textContent = 
-                    `UGX ${Math.round(estimatedReturns).toLocaleString()}/yr`;
-            }
-        }
+      container.innerHTML = filtered.map(inv => `
+        <div class="col-md-6 col-lg-4">
+          <div class="investment-card" onclick="showInvestmentDetails(${inv.id})">
+            <div class="investment-logo">${inv.logo}</div>
+            <h6 class="mb-2">${inv.title}</h6>
+            <div class="roi-badge mb-2">${inv.roi}</div>
+            <small class="text-muted d-block">Min: UGX ${inv.minAmount.toLocaleString()}</small>
+          </div>
+        </div>
+      `).join('');
+    }
 
-        // Toast Notification System
-        class ToastManager {
-            show(message, type = 'success') {
-                const toast = document.createElement('div');
-                toast.className = `toast-notification bg-${type}`;
-                toast.textContent = message;
-                
-                document.body.appendChild(toast);
-                
-                setTimeout(() => {
-                    toast.classList.add('show');
-                    setTimeout(() => {
-                        toast.classList.remove('show');
-                        setTimeout(() => {
-                            document.body.removeChild(toast);
-                        }, 300);
-                    }, 2000);
-                }, 100);
-            }
-        }
+    function displayPortfolio() {
+      const container = document.getElementById('portfolio-list');
+      if (portfolio.length === 0) {
+        container.innerHTML = `
+          <div class="text-center text-muted py-4">
+            <i class="fas fa-chart-line fa-3x mb-3"></i>
+            <p>No investments yet</p>
+          </div>
+        `;
+        return;
+      }
 
-        // Initialize managers
-        const investmentManager = new InvestmentManager();
-        const toastManager = new ToastManager();
+      container.innerHTML = portfolio.map(item => `
+        <div class="portfolio-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="mb-1">${item.project}</h6>
+              <small class="text-muted">Invested: UGX ${item.invested.toLocaleString()}</small>
+            </div>
+            <div class="text-end">
+              <div class="text-success mb-1">+UGX ${item.roi.toLocaleString()}</div>
+              <small class="badge bg-success">${item.status}</small>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
 
-        let selectedInvestmentId = null;
+    function showInvestmentDetails(id) {
+      const investment = investments.find(inv => inv.id === id);
+      const modal = new bootstrap.Modal(document.getElementById('investmentModal'));
+      
+      document.getElementById('modalTitle').textContent = investment.title;
+      document.getElementById('modalBody').innerHTML = `
+        <div class="text-center mb-4">
+          <div class="investment-logo mx-auto mb-3">${investment.logo}</div>
+          <div class="roi-badge d-inline-block mb-3">${investment.roi}</div>
+          <p>${investment.description}</p>
+        </div>
+        <div class="bg-dark p-3 rounded">
+          <div class="mb-2">
+            <small class="text-muted">Minimum Investment</small>
+            <div>UGX ${investment.minAmount.toLocaleString()}</div>
+          </div>
+          <div>
+            <small class="text-muted">Investment Period</small>
+            <div>12 Months</div>
+          </div>
+        </div>
+      `;
+      
+      modal.show();
+    }
 
-        function showInvestmentDetails(id) {
-            const investment = investmentManager.investments.find(inv => inv.id === id);
-            if (!investment) return;
+    function filterInvestments(category) {
+      document.querySelectorAll('.category-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      displayInvestments(category);
+    }
 
-            selectedInvestmentId = id;
-            
-            document.getElementById('modalTitle').textContent = investment.name;
-            document.getElementById('modalDescription').textContent = investment.description;
-            document.getElementById('modalAPY').textContent = `${investment.apy}%`;
-            document.getElementById('modalMinAmount').textContent = 
-                `UGX ${investment.minAmount.toLocaleString()}`;
-            
-            document.getElementById('investmentAmount').min = investment.minAmount;
-            document.getElementById('investmentAmount').placeholder = 
-                `Min. UGX ${investment.minAmount.toLocaleString()}`;
+    function showAddFundsModal() {
+      const modal = new bootstrap.Modal(document.getElementById('addFundsModal'));
+      modal.show();
+    }
 
-            const modal = new bootstrap.Modal(document.getElementById('investmentModal'));
-            modal.show();
-        }
+    function processFunds() {
+      const amount = document.getElementById('fundAmount').value;
+      const method = document.getElementById('paymentMethod').value;
+      
+      // Add funds processing logic here
+      
+      const modal = bootstrap.Modal.getInstance(document.getElementById('addFundsModal'));
+      modal.hide();
+      
+      // Show success message
+      alert('Funds added successfully!');
+      updateBalance();
+    }
 
-        function confirmInvestment() {
-            const form = document.getElementById('investmentForm');
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
+    function investNow() {
+      // Investment processing logic here
+      alert('Investment successful!');
+      const modal = bootstrap.Modal.getInstance(document.getElementById('investmentModal'));
+      modal.hide();
+    }
 
-            const amount = parseFloat(document.getElementById('investmentAmount').value);
-            const investment = investmentManager.investments.find(inv => inv.id === selectedInvestmentId);
-
-            if (amount < investment.minAmount) {
-                toastManager.show(`Minimum investment is UGX ${investment.minAmount.toLocaleString()}`, 'danger');
-                return;
-            }
-
-            if (investmentManager.addInvestment(selectedInvestmentId, amount)) {
-                bootstrap.Modal.getInstance(document.getElementById('investmentModal')).hide();
-                toastManager.show('Investment successful!', 'success');
-                document.getElementById('investmentAmount').value = '';
-            } else {
-                toastManager.show('Investment failed. Please try again.', 'danger');
-            }
-        }
-    </script>
+    function updateBalance() {
+      // Update investable balance - replace with actual balance fetch
+      document.getElementById('investable-balance').textContent = '1,500,000';
+    }
+  </script>
 </body>
 </html> 
