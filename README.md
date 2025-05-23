@@ -126,8 +126,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-- Website: [glidepay.com](https://glidepay.com)
-- Email: support@glidepay.com
+- Website: [glide-pay.onrender.com](https://glide-pay.onrender.com)
+- Email: glidepay123@gmail.com
 - Twitter: [@GlidePay](https://twitter.com/GlidePay)
 
 ## Acknowledgments
