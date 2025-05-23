@@ -199,6 +199,52 @@
             margin-top: 0.4rem;
           }
 
+          /* Enhanced service card styles */
+          .service-tile {
+            transition: all 0.3s ease-in-out !important;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+          }
+
+          .service-tile:hover {
+            transform: translateY(-5px) !important;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+          }
+
+          .service-tile::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+          }
+
+          .service-tile:hover::before {
+            opacity: 1;
+          }
+
+          .service-tile i {
+            transition: transform 0.3s ease;
+          }
+
+          .service-tile:hover i {
+            transform: scale(1.1);
+          }
+
+          .service-tile small {
+            transition: all 0.3s ease;
+            opacity: 0.8;
+          }
+
+          .service-tile:hover small {
+            opacity: 1;
+          }
+
           .popup-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -296,88 +342,66 @@
             <div class="row g-3">
               <!-- Shopping -->
               <div class="col-6 col-md-3">
-                <div class="card bg-gradient h-100 border-0" style="background: linear-gradient(45deg, #FF6B6B, #FF8E8E);" onclick="window.location.href='/services/shopping'">
+                <div class="service-tile card bg-gradient h-100 border-0" style="background: linear-gradient(45deg, #FF6B6B, #FF8E8E);" onclick="window.location.href='/services/shopping.html'">
                   <div class="card-body text-center text-white">
                     <i class="fas fa-shopping-cart fa-2x mb-2"></i>
                     <h6 class="card-title text-white mb-1">Shopping</h6>
-                    <small>Browse & Buy</small>
+                    <small>Browse & Buy Products</small>
                   </div>
                 </div>
               </div>
 
               <!-- Bill Payments -->
               <div class="col-6 col-md-3">
-                <div class="card bg-gradient h-100 border-0" style="background: linear-gradient(45deg, #4ECDC4, #45B7AF);" onclick="window.location.href='/services/bills'">
+                <div class="service-tile card bg-gradient h-100 border-0" style="background: linear-gradient(45deg, #4ECDC4, #45B7AF);" onclick="window.location.href='/services/bills.html'">
                   <div class="card-body text-center text-white">
                     <i class="fas fa-file-invoice fa-2x mb-2"></i>
                     <h6 class="card-title text-white mb-1">Bills</h6>
-                    <small>Pay Utilities</small>
+                    <small>Pay All Your Utilities</small>
                   </div>
                 </div>
               </div>
 
               <!-- Housing -->
               <div class="col-6 col-md-3">
-                <div class="card bg-gradient h-100 border-0" style="background: linear-gradient(45deg, #A8E6CF, #8ED7BE);" onclick="window.location.href='/services/housing'">
+                <div class="service-tile card bg-gradient h-100 border-0" style="background: linear-gradient(45deg, #A8E6CF, #8ED7BE);" onclick="window.location.href='/services/housing.html'">
                   <div class="card-body text-center text-white">
                     <i class="fas fa-home fa-2x mb-2"></i>
                     <h6 class="card-title text-white mb-1">Housing</h6>
-                    <small>Rent & Stay</small>
+                    <small>Rent, Buy & Stay</small>
                   </div>
                 </div>
               </div>
 
-              <!-- Loans -->
+              <!-- Finances (Combined) -->
               <div class="col-6 col-md-3">
-                <div class="card bg-gradient h-100 border-0" style="background: linear-gradient(45deg, #FFD93D, #F6C90E);" onclick="window.location.href='/services/financial/loans'">
+                <div class="service-tile card bg-gradient h-100 border-0" style="background: linear-gradient(45deg, #6C5CE7, #5A4ED1);" onclick="window.location.href='/services/finances.html'">
                   <div class="card-body text-center text-white">
-                    <i class="fas fa-hand-holding-usd fa-2x mb-2"></i>
-                    <h6 class="card-title text-white mb-1">Loans</h6>
-                    <small>Quick Finance</small>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Savings -->
-              <div class="col-6 col-md-3">
-                <div class="card bg-gradient h-100 border-0" style="background: linear-gradient(45deg, #6C5CE7, #5A4ED1);" onclick="window.location.href='/services/financial/savings'">
-                  <div class="card-body text-center text-white">
-                    <i class="fas fa-piggy-bank fa-2x mb-2"></i>
-                    <h6 class="card-title text-white mb-1">Savings</h6>
-                    <small>Grow Money</small>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Group Savings -->
-              <div class="col-6 col-md-3">
-                <div class="card bg-gradient h-100 border-0" style="background: linear-gradient(45deg, #FF8008, #FFA03C);" onclick="window.location.href='/services/financial/savings/group'">
-                  <div class="card-body text-center text-white">
-                    <i class="fas fa-users fa-2x mb-2"></i>
-                    <h6 class="card-title text-white mb-1">Group Save</h6>
-                    <small>Save Together</small>
+                    <i class="fas fa-landmark fa-2x mb-2"></i>
+                    <h6 class="card-title text-white mb-1">Finances</h6>
+                    <small>Loans & Savings</small>
                   </div>
                 </div>
               </div>
 
               <!-- Airtime -->
               <div class="col-6 col-md-3">
-                <div class="card bg-gradient h-100 border-0" style="background: linear-gradient(45deg, #00B4DB, #0083B0);" onclick="window.location.href='/services/airtime'">
+                <div class="service-tile card bg-gradient h-100 border-0" style="background: linear-gradient(45deg, #00B4DB, #0083B0);" onclick="window.location.href='/services/airtime.html'">
                   <div class="card-body text-center text-white">
                     <i class="fas fa-mobile-alt fa-2x mb-2"></i>
                     <h6 class="card-title text-white mb-1">Airtime</h6>
-                    <small>Top Up</small>
+                    <small>Top Up & Data</small>
                   </div>
                 </div>
               </div>
 
               <!-- Send Money -->
               <div class="col-6 col-md-3">
-                <div class="card bg-gradient h-100 border-0" style="background: linear-gradient(45deg, #FF4B2B, #FF416C);" onclick="window.location.href='/services/transfer'">
+                <div class="service-tile card bg-gradient h-100 border-0" style="background: linear-gradient(45deg, #FF4B2B, #FF416C);" onclick="window.location.href='/services/transfer.html'">
                   <div class="card-body text-center text-white">
                     <i class="fas fa-paper-plane fa-2x mb-2"></i>
                     <h6 class="card-title text-white mb-1">Send Money</h6>
-                    <small>Quick Transfer</small>
+                    <small>Quick & Easy Transfer</small>
                   </div>
                 </div>
               </div>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlidePay - Bill Payments</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #1c1c2b;
+            color: #fff;
+        }
+        .navbar {
+            background: #2d2d44;
+        }
+        .bill-card {
+            background: #2d2d44;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .bill-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .bill-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .recent-payment {
+            background: #2d2d44;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .payment-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        .status-success {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+        }
+        .status-pending {
+            background: rgba(241, 196, 15, 0.2);
+            color: #f1c40f;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/main.html">
+                <i class="fas fa-arrow-left me-2"></i>Bill Payments
+            </a>
+            <button class="btn btn-outline-light">
+                <i class="fas fa-history"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        <!-- Bill Categories -->
+        <div class="row g-4 mb-4">
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="bill-card p-3 text-center" onclick="showPaymentForm('electricity')">
+                    <div class="bill-icon mx-auto">
+                        <i class="fas fa-bolt text-warning"></i>
+                    </div>
+                    <h6>Electricity</h6>
+                    <small class="text-muted">UMEME, REA</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="bill-card p-3 text-center" onclick="showPaymentForm('water')">
+                    <div class="bill-icon mx-auto">
+                        <i class="fas fa-tint text-info"></i>
+                    </div>
+                    <h6>Water</h6>
+                    <small class="text-muted">NWSC, Local</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="bill-card p-3 text-center" onclick="showPaymentForm('internet')">
+                    <div class="bill-icon mx-auto">
+                        <i class="fas fa-wifi text-primary"></i>
+                    </div>
+                    <h6>Internet</h6>
+                    <small class="text-muted">MTN, Airtel</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="bill-card p-3 text-center" onclick="showPaymentForm('tv')">
+                    <div class="bill-icon mx-auto">
+                        <i class="fas fa-tv text-danger"></i>
+                    </div>
+                    <h6>TV</h6>
+                    <small class="text-muted">DSTV, GOtv</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="bill-card p-3 text-center" onclick="showPaymentForm('education')">
+                    <div class="bill-icon mx-auto">
+                        <i class="fas fa-graduation-cap text-success"></i>
+                    </div>
+                    <h6>School Fees</h6>
+                    <small class="text-muted">All Schools</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="bill-card p-3 text-center" onclick="showPaymentForm('government')">
+                    <div class="bill-icon mx-auto">
+                        <i class="fas fa-landmark text-primary"></i>
+                    </div>
+                    <h6>Government</h6>
+                    <small class="text-muted">URA, NSSF</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Payments -->
+        <div class="mt-5">
+            <h5 class="mb-4">Recent Payments</h5>
+            <div class="recent-payment d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="bill-icon me-3">
+                        <i class="fas fa-bolt text-warning"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1">UMEME Electricity</h6>
+                        <small class="text-muted">Today, 2:30 PM</small>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <div class="text-warning mb-1">UGX 50,000</div>
+                    <span class="payment-status status-success">Successful</span>
+                </div>
+            </div>
+            <div class="recent-payment d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="bill-icon me-3">
+                        <i class="fas fa-tv text-danger"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1">DSTV Subscription</h6>
+                        <small class="text-muted">Yesterday</small>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <div class="text-warning mb-1">UGX 185,000</div>
+                    <span class="payment-status status-pending">Pending</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Form Modal -->
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="modalTitle">Pay Bill</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="paymentForm">
+                        <div class="mb-3">
+                            <label class="form-label">Provider</label>
+                            <select class="form-select bg-dark text-light" id="providerSelect">
+                                <!-- Options will be added dynamically -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Account/Meter Number</label>
+                            <input type="text" class="form-control bg-dark text-light" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Amount (UGX)</label>
+                            <input type="number" class="form-control bg-dark text-light" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control bg-dark text-light" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" onclick="processPayment()">Pay Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const providers = {
+            electricity: ['UMEME', 'REA'],
+            water: ['NWSC', 'Local Authority'],
+            internet: ['MTN Fiber', 'Airtel Home', 'Zuku'],
+            tv: ['DSTV', 'GOtv', 'StarTimes'],
+            education: ['School Pay', 'Direct Payment'],
+            government: ['URA', 'NSSF', 'KCCA']
+        };
+
+        function showPaymentForm(type) {
+            const select = document.getElementById('providerSelect');
+            select.innerHTML = providers[type]
+                .map(provider => `<option value="${provider}">${provider}</option>`)
+                .join('');
+            
+            document.getElementById('modalTitle').textContent = `Pay ${type.charAt(0).toUpperCase() + type.slice(1)} Bill`;
+            new bootstrap.Modal(document.getElementById('paymentModal')).show();
+        }
+
+        function processPayment() {
+            // Add payment processing logic here
+            const modal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'));
+            modal.hide();
+            
+            // Show success message
+            alert('Payment processed successfully!');
+        }
+    </script>
+</body>
+</html> 

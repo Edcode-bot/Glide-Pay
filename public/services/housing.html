@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlidePay - Housing</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #1c1c2b;
+            color: #fff;
+        }
+        .navbar {
+            background: #2d2d44;
+        }
+        .property-card {
+            background: #2d2d44;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        .property-card:hover {
+            transform: translateY(-5px);
+        }
+        .property-image {
+            height: 200px;
+            object-fit: cover;
+        }
+        .property-features {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        .filter-pill {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 8px 15px;
+            margin: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        .filter-pill:hover, .filter-pill.active {
+            background: #ffa726;
+            color: #1c1c2b;
+        }
+        .search-bar {
+            background: #2d2d44;
+            border: none;
+            color: #fff;
+            border-radius: 25px;
+            padding: 10px 20px;
+        }
+        .search-bar:focus {
+            background: #3d3d54;
+            color: #fff;
+            box-shadow: none;
+        }
+        .price-tag {
+            background: rgba(255,167,38,0.9);
+            color: #1c1c2b;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .property-type {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0,0,0,0.6);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/main.html">
+                <i class="fas fa-arrow-left me-2"></i>Housing
+            </a>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#filtersModal">
+                    <i class="fas fa-filter"></i>
+                </button>
+                <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#savedModal">
+                    <i class="fas fa-heart"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        <!-- Search and Filters -->
+        <div class="mb-4">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control search-bar" placeholder="Search location, property type...">
+                <button class="btn btn-warning" type="button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div class="d-flex flex-wrap">
+                <div class="filter-pill active">All</div>
+                <div class="filter-pill">For Rent</div>
+                <div class="filter-pill">For Sale</div>
+                <div class="filter-pill">Apartments</div>
+                <div class="filter-pill">Houses</div>
+                <div class="filter-pill">Land</div>
+            </div>
+        </div>
+
+        <!-- Properties Grid -->
+        <div class="row g-4" id="propertiesGrid">
+            <!-- Property cards will be added dynamically -->
+        </div>
+    </div>
+
+    <!-- Filters Modal -->
+    <div class="modal fade" id="filtersModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">Filters</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Price Range</label>
+                        <div class="d-flex gap-2">
+                            <input type="number" class="form-control bg-dark text-light" placeholder="Min">
+                            <input type="number" class="form-control bg-dark text-light" placeholder="Max">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Property Type</label>
+                        <select class="form-select bg-dark text-light">
+                            <option value="">All Types</option>
+                            <option>Apartment</option>
+                            <option>House</option>
+                            <option>Land</option>
+                            <option>Commercial</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Bedrooms</label>
+                        <select class="form-select bg-dark text-light">
+                            <option value="">Any</option>
+                            <option>1</option>
+                            <option>2</option>
+                            <option>3</option>
+                            <option>4+</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Amenities</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="parking">
+                            <label class="form-check-label" for="parking">Parking</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="security">
+                            <label class="form-check-label" for="security">Security</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="furnished">
+                            <label class="form-check-label" for="furnished">Furnished</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Clear</button>
+                    <button type="button" class="btn btn-warning" onclick="applyFilters()">Apply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sample property data - In production, this would come from an API
+        const properties = [
+            {
+                id: 1,
+                title: "Modern Apartment in Kololo",
+                type: "Apartment",
+                price: 1500000,
+                location: "Kololo, Kampala",
+                bedrooms: 2,
+                bathrooms: 2,
+                area: 120,
+                image: "https://example.com/apartment1.jpg",
+                features: ["Parking", "Security", "Furnished"],
+                listingType: "Rent"
+            },
+            // Add more properties...
+        ];
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProperties();
+        });
+
+        function loadProperties(filter = 'All') {
+            const grid = document.getElementById('propertiesGrid');
+            const filteredProperties = filter === 'All' 
+                ? properties 
+                : properties.filter(p => p.type === filter || p.listingType === filter);
+
+            grid.innerHTML = filteredProperties.map(property => `
+                <div class="col-md-6 col-lg-4">
+                    <div class="property-card">
+                        <div class="position-relative">
+                            <img src="${property.image}" class="w-100 property-image">
+                            <div class="price-tag">UGX ${property.price.toLocaleString()}/mo</div>
+                            <div class="property-type">${property.listingType}</div>
+                        </div>
+                        <div class="p-3">
+                            <h6 class="mb-2">${property.title}</h6>
+                            <div class="text-muted mb-3">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                ${property.location}
+                            </div>
+                            <div class="property-features mb-3">
+                                <span><i class="fas fa-bed me-1"></i>${property.bedrooms} beds</span>
+                                <span><i class="fas fa-bath me-1"></i>${property.bathrooms} baths</span>
+                                <span><i class="fas fa-ruler-combined me-1"></i>${property.area}m²</span>
+                            </div>
+                            <button class="btn btn-warning w-100" onclick="viewProperty(${property.id})">
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function viewProperty(id) {
+            // Add property viewing logic here
+            window.location.href = `/services/housing/property.html?id=${id}`;
+        }
+
+        function applyFilters() {
+            // Add filter application logic here
+            const modal = bootstrap.Modal.getInstance(document.getElementById('filtersModal'));
+            modal.hide();
+            loadProperties(); // Reload with filters
+        }
+
+        // Event Listeners
+        document.querySelectorAll('.filter-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                document.querySelector('.filter-pill.active').classList.remove('active');
+                pill.classList.add('active');
+                loadProperties(pill.textContent);
+            });
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlidePay - Send Money</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #1c1c2b;
+            color: #fff;
+        }
+        .navbar {
+            background: #2d2d44;
+        }
+        .transfer-card {
+            background: #2d2d44;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .transfer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .transfer-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .transfer-card:hover::before {
+            opacity: 1;
+        }
+        .contact-avatar {
+            width: 40px;
+            height: 40px;
+            background: #ffa726;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        .recent-contact {
+            background: #2d2d44;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .recent-contact:hover {
+            background: #3d3d54;
+        }
+        .transfer-method {
+            background: #2d2d44;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .transfer-method:hover {
+            background: #3d3d54;
+        }
+        .transfer-method.selected {
+            border: 2px solid #ffa726;
+        }
+        .method-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/main.html">
+                <i class="fas fa-arrow-left me-2"></i>Send Money
+            </a>
+            <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#historyModal">
+                <i class="fas fa-history"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        <!-- Transfer Methods -->
+        <h5 class="mb-3">Send Money via</h5>
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <div class="transfer-method d-flex align-items-center" onclick="selectMethod('mobile')">
+                    <div class="method-icon">
+                        <i class="fas fa-mobile-alt text-warning"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1">Mobile Money</h6>
+                        <small class="text-muted">Send to any mobile money number</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="transfer-method d-flex align-items-center" onclick="selectMethod('bank')">
+                    <div class="method-icon">
+                        <i class="fas fa-university text-info"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1">Bank Transfer</h6>
+                        <small class="text-muted">Send to any bank account</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="transfer-method d-flex align-items-center" onclick="selectMethod('wallet')">
+                    <div class="method-icon">
+                        <i class="fas fa-wallet text-success"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1">GlidePay Wallet</h6>
+                        <small class="text-muted">Send to another GlidePay user</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Contacts -->
+        <div class="mb-4">
+            <h5 class="mb-3">Recent Recipients</h5>
+            <div class="recent-contact d-flex align-items-center" onclick="selectRecipient('john')">
+                <div class="contact-avatar">J</div>
+                <div>
+                    <h6 class="mb-1">John Doe</h6>
+                    <small class="text-muted">+256 772 123456</small>
+                </div>
+            </div>
+            <div class="recent-contact d-flex align-items-center" onclick="selectRecipient('sarah')">
+                <div class="contact-avatar">S</div>
+                <div>
+                    <h6 class="mb-1">Sarah Smith</h6>
+                    <small class="text-muted">+256 701 987654</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transfer Form -->
+        <div class="card bg-dark text-light p-4">
+            <h5 class="mb-4">Send Money</h5>
+            <form id="transferForm">
+                <div class="mb-3">
+                    <label class="form-label">Recipient's Number/Account</label>
+                    <input type="text" class="form-control bg-dark text-light border-secondary" id="recipientInput" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Amount (UGX)</label>
+                    <input type="number" class="form-control bg-dark text-light border-secondary" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Purpose (Optional)</label>
+                    <input type="text" class="form-control bg-dark text-light border-secondary" placeholder="e.g. Rent payment">
+                </div>
+                <button type="button" class="btn btn-warning w-100" onclick="processTransfer()">
+                    Send Money
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">Confirm Transfer</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Enter PIN to confirm</label>
+                        <input type="password" class="form-control bg-dark text-light border-secondary" maxlength="4" placeholder="****">
+                    </div>
+                    <div class="transfer-details">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Amount:</span>
+                            <span class="text-warning" id="confirmAmount"></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Fee:</span>
+                            <span class="text-muted" id="confirmFee"></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total:</span>
+                            <span class="text-warning" id="confirmTotal"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" onclick="confirmTransfer()">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let selectedMethod = '';
+
+        function selectMethod(method) {
+            selectedMethod = method;
+            document.querySelectorAll('.transfer-method').forEach(m => {
+                m.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            // Update form based on method
+            const input = document.getElementById('recipientInput');
+            switch(method) {
+                case 'mobile':
+                    input.placeholder = 'Enter mobile money number';
+                    break;
+                case 'bank':
+                    input.placeholder = 'Enter bank account number';
+                    break;
+                case 'wallet':
+                    input.placeholder = 'Enter GlidePay username or number';
+                    break;
+            }
+        }
+
+        function selectRecipient(id) {
+            // Add recipient selection logic
+            document.getElementById('recipientInput').value = '+256 772 123456';
+        }
+
+        function processTransfer() {
+            if (!selectedMethod) {
+                alert('Please select a transfer method');
+                return;
+            }
+
+            // Show confirmation modal with calculated fees
+            const amount = document.querySelector('input[type="number"]').value;
+            const fee = calculateFee(amount, selectedMethod);
+            const total = parseFloat(amount) + fee;
+
+            document.getElementById('confirmAmount').textContent = `UGX ${amount.toLocaleString()}`;
+            document.getElementById('confirmFee').textContent = `UGX ${fee.toLocaleString()}`;
+            document.getElementById('confirmTotal').textContent = `UGX ${total.toLocaleString()}`;
+
+            new bootstrap.Modal(document.getElementById('confirmModal')).show();
+        }
+
+        function calculateFee(amount, method) {
+            // Add fee calculation logic based on method and amount
+            return 1000; // Example fee
+        }
+
+        function confirmTransfer() {
+            // Add transfer confirmation logic here
+            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+            modal.hide();
+            alert('Transfer successful!');
+        }
+    </script>
+</body>
+</html> 
