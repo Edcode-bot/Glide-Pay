@@ -10,161 +10,224 @@
         <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
         <style>
-            body {
-                background: #1c1c2b;
-                color: #fff;
-                font-family: 'Segoe UI', sans-serif;
-                padding-bottom: 100px;
-            }
+          body {
+            background: #1c1c2b;
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            padding-bottom: 100px;
+          }
+          .navbar-custom {
+            background: #1c1c2b;
+            padding: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .wallet-card {
+            background: linear-gradient(135deg, #ff8a00, #e52e71);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            color: #fff;
+          }
+          .currency-card {
+            background: #2d2d44;
+            padding: 1rem;
+            margin: 0.5rem;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            flex: 1;
+          }
+          .options-card {
+            background: #2d2d44;
+            border-radius: 15px;
+            padding: 1rem;
+            margin: 1rem 0;
+          }
+          .option-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            text-align: center;
+          }
+          .option-grid a div {
+            background: #3c3c5a;
+            padding: 1rem;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.9rem;
+          }
+          .option-card {
+            background: #1c1b3b;
+            border-radius: 16px;
+            color: white;
+            box-shadow: 0 0 10px rgba(255, 165, 0, 0.2);
+            text-decoration: none;
+          }
+          .option-card:hover {
+            background: #ff7e5f;
+            color: white;
+          }
+          .history-card {
+            background: #2d2d44;
+            border-radius: 15px;
+            padding: 1rem;
+            color: #ccc;
+          }
+          .nav-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #2d2d44;
+            border-top: 1px solid #444;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 60px;
+            z-index: 1000;
+          }
+          .nav-bottom i {
+            font-size: 1.4rem;
+            color: #ffa726;
+          }
+          .center-btn {
+            background: #ffa726;
+            color: #000;
+            border-radius: 50%;
+            width: 55px;
+            height: 55px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: -25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+          }
+          #cryptoPopup {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #2d2d44;
+            border-top: 1px solid #555;
+            padding: 1rem;
+            color: #fff;
+            z-index: 2000;
+          }
+          #cryptoPopup button {
+            width: 100%;
+            margin-bottom: 10px;
+          }
+          .wallet-connect-card {
+            background: linear-gradient(135deg, #ff8a00, #e52e71);
 
-            .navbar-custom {
-                background: #1c1c2b;
-                padding: 1.2rem;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
+  color: #1c1c2b;
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+  margin: 1rem 0;
+  text-align: center;
+}
+.wallet-connect-card h5 {
+  color: #2ecc71;
+  margin-bottom: 0.5rem;
+}
+.wallet-connect-card p {
+  color: #555;
+  font-size: 0.9rem;
+}
+.connect-btn {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #2ecc71;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.connect-btn:hover {
+  background: #27ae60;
+}
+          body {
+            margin: 0;
+            background: #f3f1e7;
+            font-family: 'Segoe UI', sans-serif;
+          }
 
-            .cart-icon {
-                position: relative;
-                cursor: pointer;
-            }
+          h5, h6 {
+            color: #1c1c2b;
+          }
 
-            .cart-badge {
-                position: absolute;
-                top: -8px;
-                right: -8px;
-                background: #ff8a00;
-                color: white;
-                border-radius: 50%;
-                width: 20px;
-                height: 20px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 12px;
-            }
+          .section-header {
+            padding: 1rem;
+            background: #fff;
+          }
 
-            .wallet-section {
-                position: relative;
-                padding: 1rem;
-            }
+          .service-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+          }
 
-            .wallet-card {
-                background: linear-gradient(135deg, #ff8a00, #e52e71);
-                border-radius: 20px;
-                padding: 1.5rem;
-                margin: 1rem 0;
-                color: #fff;
-            }
+          .service-grid {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+          }
 
-            .connect-wallet-btn {
-                background: rgba(255, 255, 255, 0.2);
-                border: none;
-                color: white;
-                padding: 0.8rem 1.5rem;
-                border-radius: 10px;
-                backdrop-filter: blur(5px);
-                width: 100%;
-                margin-top: 1rem;
-                cursor: pointer;
-                transition: background 0.3s;
-            }
+          .service-item {
+            width: 70px;
+            text-align: center;
+            cursor: pointer;
+          }
 
-            .connect-wallet-btn:hover {
-                background: rgba(255, 255, 255, 0.3);
-            }
+          .service-item img {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+          }
 
-            .services-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: 1rem;
-                padding: 1rem;
-            }
+          .service-item span {
+            display: block;
+            font-size: 0.8rem;
+            color: #333;
+            margin-top: 0.4rem;
+          }
 
-            .service-card {
-                background: #2d2d44;
-                border-radius: 15px;
-                padding: 1.2rem;
-                text-align: center;
-                cursor: pointer;
-                transition: transform 0.2s;
-            }
+          .popup-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+          }
 
-            .service-card:hover {
-                transform: translateY(-5px);
-            }
+          .popup-card {
+            background: #fff;
+            color: #000;
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+          }
 
-            .service-icon {
-                font-size: 2rem;
-                color: #ffa726;
-                margin-bottom: 0.5rem;
-            }
+          .popup-card h5 {
+            font-weight: bold;
+            margin-bottom: 0.8rem;
+          }
 
-            .transactions-section {
-                background: #2d2d44;
-                border-radius: 15px;
-                padding: 1.5rem;
-                margin: 1rem;
-            }
-
-            .transaction-item {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 1rem;
-                border-bottom: 1px solid #3d3d54;
-            }
-
-            .transaction-icon {
-                width: 40px;
-                height: 40px;
-                background: rgba(255, 167, 38, 0.2);
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: #ffa726;
-            }
-
-            .nav-bottom {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                background: #2d2d44;
-                border-top: 1px solid #444;
-                display: flex;
-                justify-content: space-around;
-                align-items: center;
-                height: 60px;
-                z-index: 1000;
-            }
-
-            .nav-bottom i {
-                font-size: 1.4rem;
-                color: #ffa726;
-            }
-
-            .section-title {
-                color: #ffa726;
-                margin: 1rem;
-                font-weight: 600;
-            }
-
-            .divi-balance {
-                background: rgba(255, 255, 255, 0.1);
-                padding: 0.5rem 1rem;
-                border-radius: 10px;
-                margin-top: 0.5rem;
-            }
-
-            .wallet-address {
-                font-size: 0.8rem;
-                opacity: 0.8;
-                margin-top: 0.5rem;
-                word-break: break-all;
-            }
+          .popup-card button {
+            margin-top: 1rem;
+          }
         </style>
       </head>
       <body>
@@ -226,47 +289,96 @@
           <button class="btn btn-warning" onclick="startDivviReferral()">Claim Referral Rewards</button>
         </div>
 
-        <!-- Quick Services -->
-        <h5 class="section-title">Quick Services</h5>
-        <div class="services-grid">
-            <div class="service-card" onclick="window.location.href='/topup.html'">
-                <div class="service-icon">
-                    <i class="fas fa-mobile-alt"></i>
-                </div>
-                <div>Mobile Top-up</div>
-            </div>
-            <div class="service-card" onclick="window.location.href='/bills.html'">
-                <div class="service-icon">
-                    <i class="fas fa-file-invoice"></i>
-                </div>
-                <div>Pay Bills</div>
-            </div>
-            <div class="service-card" onclick="window.location.href='/wallet-transfer.html'">
-                <div class="service-icon">
-                    <i class="fas fa-exchange-alt"></i>
-                </div>
-                <div>Send Money</div>
-            </div>
-            <div class="service-card" onclick="window.location.href='/qr-payment.html'">
-                <div class="service-icon">
-                    <i class="fas fa-qrcode"></i>
-                </div>
-                <div>QR Pay</div>
-            </div>
-            <div class="service-card" onclick="window.location.href='/digital-wallet.html'">
-                <div class="service-icon">
-                    <i class="fas fa-wallet"></i>
-                </div>
-                <div>Digital Wallet</div>
-            </div>
-            <div class="service-card" onclick="window.location.href='/crypto-exchange.html'">
-                <div class="service-icon">
-                    <i class="fas fa-coins"></i>
-                </div>
-                <div>Crypto Exchange</div>
-            </div>
+        <div class="section-header">
+          <h5>Select Services</h5>
         </div>
 
+        <div class="container py-3">
+
+          <!-- HOUSING -->
+          <div class="service-card">
+            <h6>Housing</h6>
+            <div class="service-grid">
+              <div class="service-item" onclick="openPopup('rentPopup')">
+                <img src="/assets/rent.png" alt="Rent">
+                <span>Rent</span>
+              </div>
+              <div class="service-item" onclick="openPopup('shortstayPopup')">
+                <img src="/assets/airbnb.png" alt="Short Stay">
+                <span>Short Stay</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- BILLS -->
+          <div class="service-card">
+            <h6>Utility Bills</h6>
+            <div class="service-grid">
+              <div class="service-item" onclick="openPopup('electricityPopup')">
+                <img src="/assets/electricity.png" alt="Electricity">
+                <span>Electricity</span>
+              </div>
+              <div class="service-item" onclick="openPopup('waterPopup')">
+                <img src="/assets/water.png" alt="Water">
+                <span>Water</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- FINANCE -->
+          <div class="service-card">
+            <h6>Financial Services</h6>
+            <div class="service-grid">
+              <div class="service-item" onclick="openPopup('loanPopup')">
+                <img src="/assets/loan.png" alt="Loan">
+                <span>Loan</span>
+              </div>
+              <div class="service-item" onclick="openPopup('savingPopup')">
+                <img src="/assets/saving.png" alt="Saving">
+                <span>Saving</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- POPUP CONTAINER -->
+        <div id="popupOverlay" class="popup-overlay">
+          <div class="popup-card">
+            <div id="popupContent"></div>
+            <button class="btn btn-dark w-100 mt-3" onclick="closePopup()">Close</button>
+          </div>
+        </div>
+
+        <!-- POPUP TEMPLATES (hidden) -->
+        <div style="display:none;">
+          <div id="rentPopup">
+            <h5>Rent</h5>
+            <p>Pay your house rent using digital wallets, bank or MoMo. All payments are tracked.</p>
+          </div>
+          <div id="shortstayPopup">
+            <h5>Short Stay</h5>
+            <p>Book short rentals like Airbnb directly with verified property owners.</p>
+          </div>
+          <div id="electricityPopup">
+            <h5>Electricity</h5>
+            <p>Buy tokens or pay postpaid electricity bills from UMEME or other providers.</p>
+          </div>
+          <div id="waterPopup">
+            <h5>Water</h5>
+            <p>Pay your water bill securely from NWSC or your utility provider.</p>
+          </div>
+          <div id="loanPopup">
+            <h5>Loan</h5>
+            <p>Access emergency loans instantly based on your profile and history.</p>
+          </div>
+          <div id="savingPopup">
+            <h5>Saving</h5>
+            <p>Start saving with our flexible digital wallet savings feature.</p>
+          </div>
+        </div>
+
+        
 
         <!-- Recent Transactions -->
   <div class="card bg-dark text-light rounded-4 shadow-lg px-3 py-4 mt-4">
