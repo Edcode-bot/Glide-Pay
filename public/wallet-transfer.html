@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Transfer Funds</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body {
+      background: #1c1c2b;
+      color: white;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 1rem;
+    }
+    .back-btn {
+      background: #ffa726;
+      color: #000;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    .card {
+      background: #2d2d44;
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    input, button {
+      width: 100%;
+      padding: 0.5rem;
+      border-radius: 6px;
+      margin-top: 0.5rem;
+    }
+    input {
+      background: #444;
+      color: white;
+      border: none;
+    }
+    button {
+      background: #ffa726;
+      color: #000;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <button onclick="history.back()" class="back-btn">← Back</button>
+  <div class="card">
+    <h3>Transfer <span id="currency">Crypto</span></h3>
+    <form method="POST" action="/transfer-token">
+      <input type="hidden" name="currency" id="currencyInput">
+      <label>Recipient Wallet Address:</label>
+      <input type="text" name="address" placeholder="0x..." required>
+      <label>Amount:</label>
+      <input type="number" name="amount" placeholder="Enter amount" required>
+      <button type="submit">Transfer</button>
+    </form>
+  </div>
+
+  <script>
+    const url = new URL(window.location.href);
+    const currency = url.searchParams.get("currency") || "Crypto";
+    document.getElementById("currency").innerText = currency;
+    document.getElementById("currencyInput").value = currency;
+  </script>
+</body>
+</html>
+
+

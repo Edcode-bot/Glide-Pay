@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Welcome - Axe App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body {
+      background-color: #1c1c2b;
+      color: #ffffff;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 2rem 1rem;
+      margin: 0;
+    }
+    img {
+      max-width: 220px;
+      margin: 2rem auto;
+      display: block;
+    }
+    h2 {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+      color: #ffffff;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      max-width: 360px;
+      margin: 0 auto 2rem auto;
+      text-align: left;
+    }
+    ul li {
+      margin: 1rem 0;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      color: #bcbcbc;
+    }
+    ul li i {
+      margin-right: 0.75rem;
+      color: #ffa726;
+    }
+    button {
+      background-color: #ffffff;
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <img src="https://pintu-academy.pintukripto.com/wp-content/uploads/2022/01/What-is-Stablecoin.png" alt="Stablecoin Icon" />
+  <h2>We use dollar stablecoins</h2>
+  <ul>
+    <li><i class="fas fa-coins"></i> Often called "stablecoins" as they follow the price of the U.S. dollar</li>
+    <li><i class="fas fa-dollar-sign"></i> Your balance is always held in stablecoins</li>
+    <li><i class="fas fa-paper-plane"></i> Can be transacted directly from your wallet, without banks</li>
+  </ul>
+  <a href="/main"><button>I understand</button></a>
+
+  <script>
+  window.onload = async () => {
+    const res = await fetch('/user-profile');
+    const data = await res.json();
+
+    const firstName = data.name?.split(' ')[0] || 'User';
+    document.getElementById('welcome-message').innerText = `Hello, ${firstName} 👋`;
+
+    // Conditional redirect based on whether PIN is set
+    if (data.pin && data.pin.length > 0) {
+      // Redirect to PIN verification page
+      setTimeout(() => {
+        window.location.href = '/verify-pin.html';
+      }, 1500);
+    } else {
+      // No PIN set — continue to main app
+      setTimeout(() => {
+        window.location.href = '/main';
+      }, 1500);
+    }
+  };
+  </script>
+  
+</body>
+</html>

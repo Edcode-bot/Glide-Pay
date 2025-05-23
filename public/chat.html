@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat Page</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script src="/socket.io/socket.io.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: #1c1c2b;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      max-width: 600px;
+      margin: auto;
+      padding: 1rem;
+    }
+    h5 {
+      color: #ffa726;
+      text-align: center;
+    }
+    .input-group input {
+      background: #2d2d44;
+      border: none;
+      color: #fff;
+    }
+    .input-group .btn {
+      background-color: #ffa726;
+      color: #000;
+      border: none;
+    }
+    #messages {
+      flex-grow: 1;
+      overflow-y: auto;
+      background: #2d2d44;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+    .bubble {
+      max-width: 75%;
+      padding: 0.6rem 1rem;
+      border-radius: 1rem;
+      word-wrap: break-word;
+    }
+    .me {
+      align-self: flex-end;
+      background: #ffa726;
+      color: #000;
+    }
+    .them {
+      align-self: flex-start;
+      background: #3c3c5a;
+    }
+    .timestamp {
+      font-size: 0.75rem;
+      color: #bbb;
+      margin-top: 0.2rem;
+    }
+    .input-area {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .form-control {
+      background: #2d2d44;
+      color: white;
+      border: 1px solid #444;
+    }
+    .btn-outline-secondary {
+      border-color: #ffa726;
+      color: #ffa726;
+    }
+    .btn-outline-secondary:hover {
+      background-color: #ffa726;
+      color: #000;
+    }
+    .toast-container {
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <h5>Chat</h5>
+
+    <div class="input-group mb-2">
+      <input type="text" id="phoneInput" class="form-control" placeholder="Enter phone number to chat" />
+      <button class="btn" onclick="initChat()">Start</button>
+    </div>
+
+    <div id="messages"></div>
+
+    <form id="uploadForm" class="input-area" enctype="multipart/form-data">
+      <input type="file" name="file" class="form-control" required />
+      <button class="btn btn-outline-secondary" type="submit">📎</button>
+    </form>
+
+    <form id="chatForm" class="input-area">
+      <input type="text" id="messageInput" class="form-control" placeholder="Type a message..." />
+      <button class="btn btn-outline-secondary" type="submit">Send</button>
+    </form>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Chat Logic -->
+  <script>
+    const socket = io();
+    const senderId = sessionStorage.getItem("userId");
+    let recipientId = null;
+
+    const messages = document.getElementById("messages");
+
+    function appendMessage(role, content, time) {
+      const div = document.createElement("div");
+      div.className = "bubble " + role;
+      div.innerHTML = content + '<div class="timestamp">' + new Date(time).toLocaleTimeString() + '</div>';
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function initChat() {
+      const phone = document.getElementById("phoneInput").value;
+      if (!phone) return;
+
+      fetch('/resolve-phone?number=' + phone)
+        .then(res => res.json())
+        .then(data => {
+          if (!data.userId) {
+            alert("User not found.");
+            return;
+          }
+
+          recipientId = data.userId;
+          socket.emit("joinRoom", { userId: senderId, otherUserId: recipientId });
+
+          fetch("/messages?with=" + recipientId)
+            .then(res => res.json())
+            .then(data => {
+              messages.innerHTML = "";
+              data.forEach(m => {
+                const role = m.sender === senderId ? "me" : "them";
+                appendMessage(role, m.content, m.timestamp);
+              });
+            });
+        });
+    }
+
+    document.getElementById("chatForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const input = document.getElementById("messageInput");
+      const content = input.value;
+      if (!content || !recipientId) return;
+
+      socket.emit("sendMessage", { senderId, recipientId, content });
+      input.value = "";
+    });
+
+    document.getElementById("uploadForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      if (!recipientId) return alert("Start a chat first");
+
+      const formData = new FormData(e.target);
+      formData.append("senderId", senderId);
+      formData.append("recipientId", recipientId);
+
+      const res = await fetch("/upload-chat-file", {
+        method: "POST",
+        body: formData
+      });
+
+      const result = await res.json();
+      if (result.url) {
+        socket.emit("sendMessage", {
+          senderId,
+          recipientId,
+          content: `<a href='${result.url}' target='_blank'>📎 File</a>`
+        });
+      }
+
+      e.target.reset();
+    });
+
+    socket.on("newMessage", data => {
+      const role = data.senderId === senderId ? "me" : "them";
+      appendMessage(role, data.content, data.timestamp);
+
+      if (role === "them") {
+        showToast("New message received.");
+        document.getElementById("chatSound").play();
+      }
+    });
+
+    function showToast(message) {
+      const toast = document.createElement("div");
+      toast.className = "toast align-items-center text-white bg-success border-0 show";
+      toast.setAttribute("role", "alert");
+      toast.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">${message}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      `;
+      document.getElementById("toastContainer").appendChild(toast);
+      setTimeout(() => toast.remove(), 5000);
+    }
+  </script>
+  <audio id="chatSound" src="/notify.mp3" preload="auto"></audio>
+</body>
+</html>
+

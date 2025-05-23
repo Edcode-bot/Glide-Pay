@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - GlidePay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background: #1c1c2b;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 2rem;
+    }
+    .center {
+      max-width: 400px;
+      margin: auto;
+      text-align: center;
+    }
+    .logo {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: #ffa726;
+    }
+    input[type="email"], input[type="password"] {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.75rem;
+      margin-bottom: 1rem;
+      border: none;
+      border-radius: 8px;
+      background: #2d2d44;
+      color: white;
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      border: none;
+      background: #ffa726;
+      color: black;
+      border-radius: 8px;
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+    .link {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+    a {
+      color: #ffa726;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="center">
+    <div class="logo">👛</div>
+    <h2>Welcome Back!</h2>
+    <p>Sign in to continue</p>
+    <form method="POST" action="/login">
+      <input type="email" name="email" placeholder="Email Address" required>
+      <input type="password" name="password" placeholder="Password" required>
+      <div style="text-align: left; font-size: 0.9rem; margin-top: -0.5rem;">
+        <input type="checkbox" id="remember"> <label for="remember">Remember me</label>
+        <a href="#" style="float: right;">Forgot Password?</a>
+      </div>
+      <button type="submit">Login</button>
+    </form>
+    <div class="link">
+      Don't have an account? <a href="/register">Sign Up</a>
+    </div>
+  </div>
+</body>
+</html>

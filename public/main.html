@@ -1,0 +1,467 @@
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>GlidePay</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.5/dist/index.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+        <style>
+            body {
+                background: #1c1c2b;
+                color: #fff;
+                font-family: 'Segoe UI', sans-serif;
+                padding-bottom: 100px;
+            }
+
+            .navbar-custom {
+                background: #1c1c2b;
+                padding: 1.2rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .cart-icon {
+                position: relative;
+                cursor: pointer;
+            }
+
+            .cart-badge {
+                position: absolute;
+                top: -8px;
+                right: -8px;
+                background: #ff8a00;
+                color: white;
+                border-radius: 50%;
+                width: 20px;
+                height: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+            }
+
+            .wallet-section {
+                position: relative;
+                padding: 1rem;
+            }
+
+            .wallet-card {
+                background: linear-gradient(135deg, #ff8a00, #e52e71);
+                border-radius: 20px;
+                padding: 1.5rem;
+                margin: 1rem 0;
+                color: #fff;
+            }
+
+            .connect-wallet-btn {
+                background: rgba(255, 255, 255, 0.2);
+                border: none;
+                color: white;
+                padding: 0.8rem 1.5rem;
+                border-radius: 10px;
+                backdrop-filter: blur(5px);
+                width: 100%;
+                margin-top: 1rem;
+                cursor: pointer;
+                transition: background 0.3s;
+            }
+
+            .connect-wallet-btn:hover {
+                background: rgba(255, 255, 255, 0.3);
+            }
+
+            .services-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .service-card {
+                background: #2d2d44;
+                border-radius: 15px;
+                padding: 1.2rem;
+                text-align: center;
+                cursor: pointer;
+                transition: transform 0.2s;
+            }
+
+            .service-card:hover {
+                transform: translateY(-5px);
+            }
+
+            .service-icon {
+                font-size: 2rem;
+                color: #ffa726;
+                margin-bottom: 0.5rem;
+            }
+
+            .transactions-section {
+                background: #2d2d44;
+                border-radius: 15px;
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+
+            .transaction-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1rem;
+                border-bottom: 1px solid #3d3d54;
+            }
+
+            .transaction-icon {
+                width: 40px;
+                height: 40px;
+                background: rgba(255, 167, 38, 0.2);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #ffa726;
+            }
+
+            .nav-bottom {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: #2d2d44;
+                border-top: 1px solid #444;
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+                height: 60px;
+                z-index: 1000;
+            }
+
+            .nav-bottom i {
+                font-size: 1.4rem;
+                color: #ffa726;
+            }
+
+            .section-title {
+                color: #ffa726;
+                margin: 1rem;
+                font-weight: 600;
+            }
+
+            .divi-balance {
+                background: rgba(255, 255, 255, 0.1);
+                padding: 0.5rem 1rem;
+                border-radius: 10px;
+                margin-top: 0.5rem;
+            }
+
+            .wallet-address {
+                font-size: 0.8rem;
+                opacity: 0.8;
+                margin-top: 0.5rem;
+                word-break: break-all;
+            }
+        </style>
+      </head>
+      <body>
+
+        <!-- Top Navbar -->
+        <div class="navbar-custom">
+            <div>
+                <h4 id="welcome-message">Hello 👋</h4>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <div class="cart-icon" onclick="window.location.href='/cart.html'">
+                    <i class="fas fa-shopping-cart" style="font-size: 1.4rem;"></i>
+                    <span class="cart-badge" id="cartCount">0</span>
+                </div>
+                <a href="/profile.html" style="text-decoration: none;">
+                    <div id="profile-initial" style="
+                        width: 38px;
+                        height: 38px;
+                        background: #ffa726;
+                        color: #1c1c2b;
+                        font-weight: bold;
+                        border-radius: 50%;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;">
+                    </div>
+                </a>
+            </div>
+        </div>
+
+<!-- Unified Wallet Card -->
+<div class="wallet-card mb-4" style="background: linear-gradient(135deg, #4CAF50, #43A047); border-radius: 20px; padding: 1.5rem; color: #fff;">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <small class="text-light">Wallet Balance</small>
+      <h2 class="fw-bold">UGX <span id="balance">0</span></h2>
+    </div>
+    <button class="btn btn-light btn-sm" onclick="connectWallet()">Connect Wallet</button>
+  </div>
+
+  <!-- Add Cash Section -->
+  <div>
+    <p class="mb-2 fw-semibold text-light">Add Cash</p>
+    <div class="d-flex justify-content-around align-items-center">
+      <a href="https://mtn.co.ug" target="_blank">
+        <img src="https://i.imghippo.com/files/NnO6259hU.png" alt="MTN" style="width: 50px;" />
+      </a>
+      <a href="https://airtel.com.ug" target="_blank">
+        <img src="https://i.imghippo.com/files/DRfK9771gDE.png" alt="Airtel" style="width: 50px;" />
+      </a>
+      <a href="https://yourbank.com" target="_blank">
+        <img src="https://i.imghippo.com/files/zu8776Gc.png" alt="Bank" style="width: 50px;" />
+      </a>
+    </div>
+  </div>
+</div>
+
+        <div class="text-center my-4">
+          <button class="btn btn-warning" onclick="startDivviReferral()">Claim Referral Rewards</button>
+        </div>
+
+        <!-- Quick Services -->
+        <h5 class="section-title">Quick Services</h5>
+        <div class="services-grid">
+            <div class="service-card" onclick="window.location.href='/topup.html'">
+                <div class="service-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <div>Mobile Top-up</div>
+            </div>
+            <div class="service-card" onclick="window.location.href='/bills.html'">
+                <div class="service-icon">
+                    <i class="fas fa-file-invoice"></i>
+                </div>
+                <div>Pay Bills</div>
+            </div>
+            <div class="service-card" onclick="window.location.href='/wallet-transfer.html'">
+                <div class="service-icon">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <div>Send Money</div>
+            </div>
+            <div class="service-card" onclick="window.location.href='/qr-payment.html'">
+                <div class="service-icon">
+                    <i class="fas fa-qrcode"></i>
+                </div>
+                <div>QR Pay</div>
+            </div>
+            <div class="service-card" onclick="window.location.href='/digital-wallet.html'">
+                <div class="service-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div>Digital Wallet</div>
+            </div>
+            <div class="service-card" onclick="window.location.href='/crypto-exchange.html'">
+                <div class="service-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div>Crypto Exchange</div>
+            </div>
+        </div>
+
+
+        <!-- Recent Transactions -->
+  <div class="card bg-dark text-light rounded-4 shadow-lg px-3 py-4 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-bold mb-0">Recent Activity</h5>
+      <a href="/transactions.html" class="btn btn-sm btn-outline-light rounded-pill">View more</a>
+    </div>
+    <div id="recent-transactions" class="text-muted text-center">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="mb-2 opacity-50">
+        <path d="M4 2v20l4-4 4 4 4-4 4 4V2H4zm4 7h8m-8 4h8"/>
+      </svg>
+      <p>No transactions yet</p>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<div class="nav-bottom">
+  <a href="#"><i class="fas fa-home"></i></a>
+  <a href="/chat" class="center-btn"><i class="fas fa-comment-dots"></i></a>
+  <a href="/transactions.html"><i class="fas fa-chart-line"></i></a>
+</div>
+
+<!-- Crypto Popup -->
+<div id="cryptoPopup">
+  <h5 class="mb-3">Choose Action</h5>
+  <button class="btn btn-outline-success" onclick="openDeposit()">Deposit</button>
+  <button class="btn btn-outline-warning" onclick="openTransfer()">Transfer</button>
+  <button class="btn btn-outline-light" onclick="closePopup()">Cancel</button>
+</div>
+
+<!-- Toast Notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+  <div id="toastDivvi" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div id="toastBody" class="toast-body">Success!</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script type="module">
+  import { getDataSuffix, submitReferral } from 'https://cdn.jsdelivr.net/npm/@divvi/referral-sdk/+esm';
+  import { createWalletClient, custom } from 'https://esm.sh/viem';
+  import { celo } from 'https://esm.sh/viem/chains';
+
+  function showToast(message, type = 'success') {
+    const toastEl = document.getElementById('toastDivvi');
+    const toastBody = document.getElementById('toastBody');
+
+    toastBody.textContent = message;
+    toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
+  }
+
+  window.startDivviReferral = async function () {
+    try {
+      if (!window.ethereum) return showToast('Wallet not found. Install MetaMask or Celo Wallet.', 'danger');
+
+      const addresses = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      if (!addresses.length) return showToast('Wallet not connected.', 'danger');
+
+      const account = addresses[0];
+      const walletClient = createWalletClient({ chain: celo, transport: custom(window.ethereum), account });
+
+      const dataSuffix = getDataSuffix({
+        consumer: '0xe38a456433fff7814e40998cf0cbbbd2c885b513',
+        providers: ['0x0423189886d7966f0dd7e7d256898daeee625dca','0x5f0a55fad9424ac99429f635dfb9bf20c3360ab8','0x6226dde08402642964f9a6de844ea3116f0dfc7e']
+      });
+
+      const txHash = await walletClient.sendTransaction({
+        account,
+        to: '0x0000000000000000000000000000000000000000',
+        data: '0x' + dataSuffix,
+        value: 0n
+      });
+
+      const chainId = await walletClient.getChainId();
+      await submitReferral({ txHash, chainId });
+      showToast('Referral submitted successfully!');
+    } catch (err) {
+      console.error('Referral failed:', err);
+      const msg = err.message.includes('No providers') ? 'No campaign detected or already submitted.' : 'Transaction failed. Check network.';
+      showToast(msg, 'danger');
+    }
+  };
+
+  // Page Load
+  window.onload = async () => {
+    const profile = await fetch('/user-profile').then(r => r.json());
+    const firstName = (profile.name || 'User').split(' ')[0];
+    const emailInitial = (profile.email || 'U')[0].toUpperCase();
+    document.getElementById('welcome-message').innerText = `Hello, ${firstName} 👋`;
+    document.getElementById('profile-initial').innerText = emailInitial;
+
+    const balance = await fetch('/balance').then(r => r.json());
+    document.getElementById('balance').innerText = balance.balance;
+
+    const txs = await fetch('/transactions').then(r => r.json());
+    const container = document.getElementById("recent-transactions");
+    container.innerHTML = '';
+    const recent = txs.slice(0, 3);
+
+    if (recent.length === 0) {
+      container.innerHTML = `<div class="text-center text-muted">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="mb-2 opacity-50">
+          <path d="M4 2v20l4-4 4 4 4-4 4 4V2H4zm4 7h8m-8 4h8"/>
+        </svg>
+        <p>No transactions yet</p>
+      </div>`;
+    } else {
+      recent.forEach(tx => {
+        const color = tx.type.toLowerCase().includes('withdraw') ? 'text-danger' : 'text-success';
+        const sign = tx.type.toLowerCase().includes('withdraw') ? '-' : '+';
+        container.innerHTML += `
+          <div class="d-flex justify-content-between border-bottom py-2">
+            <div>
+              <div class="fw-semibold">${tx.type}</div>
+              <div class="small text-secondary">${new Date(tx.date).toLocaleDateString()}</div>
+            </div>
+            <div class="fw-bold ${color}">${sign} UGX ${tx.amount}</div>
+          </div>`;
+      });
+    }
+  };
+
+  // Crypto Popup logic
+  let selectedCurrency = "";
+  function showPopup(currency) {
+    selectedCurrency = currency;
+    document.getElementById("cryptoPopup").style.display = "block";
+  }
+  function closePopup() {
+    document.getElementById("cryptoPopup").style.display = "none";
+  }
+  function openDeposit() {
+    window.location.href = "wallet-deposit.html?currency=" + selectedCurrency;
+  }
+  function openTransfer() {
+    window.location.href = "wallet-transfer.html?currency=" + selectedCurrency;
+  }
+</script>
+
+<script>
+    const providerOptions = {
+      walletconnect: {
+        package: window.WalletConnectProvider.default,
+        options: {
+          rpc: {
+            44787: "https://alfajores-forno.celo-testnet.org"
+          },
+          chainId: 44787
+        }
+      }
+    };
+
+    const web3Modal = new window.Web3Modal.default({
+      network: "celo-alfajores",
+      cacheProvider: false,
+      providerOptions,
+      theme: "dark"
+    });
+
+    async function connectWallet() {
+      try {
+        const instance = await web3Modal.connect();
+        const provider = new ethers.providers.Web3Provider(instance);
+        const signer = provider.getSigner();
+        const address = await signer.getAddress();
+
+        console.log("Connected wallet address:", address);
+        alert("Wallet Connected:\n" + address);
+
+        localStorage.setItem("wallet", address);
+      } catch (err) {
+        console.error("Connection Error:", err);
+        alert("Wallet connection failed. Please try again.");
+      }
+    }
+</script>
+
+        <script>
+          function openPopup(id) {
+            const content = document.getElementById(id).innerHTML;
+            document.getElementById('popupContent').innerHTML = content;
+            document.getElementById('popupOverlay').style.display = 'flex';
+          }
+          function closePopup() {
+            document.getElementById('popupOverlay').style.display = 'none';
+          }
+        </script>
+        
+</body>
+      </html>

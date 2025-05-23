@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Profile - GlidePay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #1c1c2b;
+      color: white;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      background: #2d2d44;
+    }
+    .header i {
+      font-size: 1.5rem;
+      margin-right: 1rem;
+      color: #ffa726;
+      cursor: pointer;
+    }
+    .profile-section {
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .avatar {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: #555;
+      margin: auto;
+    }
+    .email {
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+      color: #ccc;
+    }
+    .badge {
+      margin: 0.7rem auto;
+      padding: 0.4rem 1rem;
+      background: #2ecc71;
+      color: #000;
+      border-radius: 1rem;
+      display: inline-block;
+      font-size: 0.85rem;
+    }
+    .list {
+      margin-top: 1rem;
+      padding: 0;
+      list-style: none;
+    }
+    .list li {
+      padding: 1rem;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    .list li span {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .list i {
+      color: #ffa726;
+      font-size: 1.2rem;
+    }
+    .footer {
+      text-align: center;
+      padding: 1.5rem 1rem;
+      font-size: 0.8rem;
+      color: #888;
+    }
+    .footer a {
+      color: #2ecc71;
+      text-decoration: none;
+    }
+
+    /* Popup styling */
+    .popup-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(28, 28, 43, 0.95);
+      z-index: 999;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+    .popup-card {
+      background: #2d2d44;
+      color: white;
+      padding: 1.5rem;
+      border-radius: 20px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .currency-item {
+      padding: 0.7rem;
+      border-bottom: 1px solid #444;
+      display: flex;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    .currency-item:hover {
+      background: #3a3a55;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.5rem 1.2rem;
+      border: none;
+      background: #ffa726;
+      color: black;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <i onclick="history.back()">←</i>
+    <h3 style="margin: 0; color: white;">My Profile</h3>
+  </div>
+
+  <div class="profile-section">
+    <div class="avatar"></div>
+    <div id="email" class="email">user@example.com</div>
+    <div id="wallet" class="email">0x...</div>
+    <div class="badge">Backed Up</div>
+  </div>
+
+  <ul class="list">
+    <li onclick="openCurrencyPopup()">
+      <span><i class="fas fa-globe"></i>Local Currency</span>
+      <span id="selectedCurrency">USD</span>
+    </li>
+    <li onclick="goToInvite()">
+      <span><i class="fas fa-user-friends"></i>Invite Friends</span>
+    </li>
+    <li onclick="location.href='/pin.html'">
+  <span><i class="fas fa-lock"></i>Set App PIN</span>
+    </li>
+    <li onclick="window.open('https://glidepay.xyz', '_blank')">
+      <span><i class="fas fa-book"></i>FAQs</span>
+    </li>
+    <li onclick="window.open('https://forms.gle/your-form-link', '_blank')">
+      <span><i class="fas fa-comment-dots"></i>Send Feedback</span>
+    </li>
+    <li onclick="document.getElementById('aboutModal').style.display='flex'">
+      <span><i class="fas fa-info-circle"></i>About</span>
+    </li>
+    <li onclick="logout()">
+      <span><i class="fas fa-sign-out-alt"></i>Sign Out</span>
+    </li>
+  </ul>
+
+  <div class="footer">
+    GlidePay is built on CELO<br/>
+    <a href="https://celo.org" target="_blank">Learn more</a>
+  </div>
+
+  <!-- Currency Popup -->
+  <div id="currencyPopup" class="popup-overlay">
+    <div class="popup-card">
+      <h3>Local Currency</h3>
+      <div id="currencyList"></div>
+      <button onclick="closeCurrencyPopup()">Close</button>
+    </div>
+  </div>
+
+  <!-- About Popup -->
+  <div id="aboutModal" class="popup-overlay">
+    <div class="popup-card">
+      <h3>About GlidePay</h3>
+      <p style="font-size: 0.9rem; line-height: 1.5;">
+        GlidePay is a secure, intuitive and crypto-powered digital wallet that enables users to send money, pay bills, buy airtime, and chat—all from one sleek mobile-first app. Built on CELO for global accessibility, GlidePay empowers users with real-time transactions and stablecoin balances.
+      </p>
+      <button onclick="document.getElementById('aboutModal').style.display='none'">Close</button>
+    </div>
+  </div>
+
+  <!-- Font Awesome -->
+  <script src="https://kit.fontawesome.com/your-kit-id.js" crossorigin="anonymous"></script>
+
+  <script>
+    const currencies = [
+      { code: 'USD', name: 'US Dollar' }, { code: 'UGX', name: 'Ugandan Shilling' },
+      { code: 'KES', name: 'Kenyan Shilling' }, { code: 'NGN', name: 'Nigerian Naira' },
+      { code: 'ZAR', name: 'South African Rand' }, { code: 'GHS', name: 'Ghanaian Cedi' },
+      { code: 'BHD', name: 'Bahraini Dinar' }, { code: 'BDT', name: 'Bangladeshi Taka' },
+      { code: 'AUD', name: 'Australian Dollar' }, { code: 'INR', name: 'Indian Rupee' }
+    ];
+
+    function openCurrencyPopup() {
+      document.getElementById('currencyPopup').style.display = 'flex';
+      const list = document.getElementById('currencyList');
+      list.innerHTML = '';
+      currencies.forEach(cur => {
+        const div = document.createElement('div');
+        div.className = 'currency-item';
+        div.innerHTML = `<strong>${cur.code}</strong><span>${cur.name}</span>`;
+        div.onclick = () => selectCurrency(cur.code);
+        list.appendChild(div);
+      });
+    }
+
+    function closeCurrencyPopup() {
+      document.getElementById('currencyPopup').style.display = 'none';
+    }
+
+    function selectCurrency(code) {
+      document.getElementById('selectedCurrency').innerText = code;
+      localStorage.setItem('currency', code);
+      closeCurrencyPopup();
+    }
+
+    async function loadProfile() {
+      const res = await fetch("/user-profile");
+      const data = await res.json();
+      document.getElementById("email").innerText = data.email;
+      document.getElementById("wallet").innerText = data.wallet || "0x...";
+      const stored = localStorage.getItem('currency');
+      if (stored) document.getElementById('selectedCurrency').innerText = stored;
+    }
+
+    function logout() {
+      window.location.href = "/logout";
+    }
+
+    function goToInvite() {
+      window.location.href = "/invite";
+    }
+
+    window.onload = loadProfile;
+  </script>
+</body>
+</html>

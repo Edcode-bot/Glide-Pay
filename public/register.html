@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register - GlidePay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background: #1c1c2b;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 2rem;
+    }
+    .center {
+      max-width: 400px;
+      margin: auto;
+      text-align: center;
+    }
+    .back {
+      color: #ffa726;
+      margin-bottom: 1rem;
+      display: block;
+      text-align: left;
+      cursor: pointer;
+    }
+    input[type="text"], input[type="email"], input[type="password"] {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.75rem;
+      margin-bottom: 1rem;
+      border: none;
+      border-radius: 8px;
+      background: #2d2d44;
+      color: white;
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      border: none;
+      background: #ffa726;
+      color: black;
+      border-radius: 8px;
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+    .link {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+    a {
+      color: #ffa726;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="center">
+    <a onclick="history.back()" class="back">← Back</a>
+    <h2>Create Account</h2>
+    <p>Simplify your crypto payments with us</p>
+    <form method="POST" action="/register">
+      <input type="text" name="name" placeholder="Full Name" required>
+      <input type="email" name="email" placeholder="Email Address" required>
+      <input type="password" name="password" placeholder="Password" required>
+      <div style="text-align: left; font-size: 0.9rem;">
+        <input type="checkbox" id="terms" required>
+        <label for="terms">Accept <a href="https://axeapp.io/terms" target="_blank">Terms and Conditions</a></label>
+      </div>
+      <button type="submit">Create Account</button>
+    </form>
+    <div class="link">
+      Already have an account? <a href="/login">Login</a>
+    </div>
+  </div>
+</body>
+</html>

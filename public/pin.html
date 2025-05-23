@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Set App PIN - GlidePay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body {
+      background: #1c1c2b;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      padding: 2rem;
+    }
+    h2 {
+      margin-bottom: 0.3rem;
+    }
+    .dots {
+      display: flex;
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    .dot {
+      width: 15px;
+      height: 15px;
+      border: 2px solid #ffa726;
+      border-radius: 50%;
+      background: transparent;
+    }
+    .dot.filled {
+      background: #ffa726;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 70px);
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .btn {
+      width: 70px;
+      height: 70px;
+      background: #2d2d44;
+      color: white;
+      font-size: 1.5rem;
+      border: none;
+      border-radius: 12px;
+    }
+    .btn:active {
+      background: #ffa726;
+      color: black;
+    }
+    .actions {
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <h2>Hello, <span id="userName">User</span> 👋</h2>
+  <p>Set your 4-digit App PIN</p>
+
+  <div class="dots">
+    <div class="dot" id="dot1"></div>
+    <div class="dot" id="dot2"></div>
+    <div class="dot" id="dot3"></div>
+    <div class="dot" id="dot4"></div>
+  </div>
+
+  <div class="grid">
+    <button class="btn" onclick="press('1')">1</button>
+    <button class="btn" onclick="press('2')">2</button>
+    <button class="btn" onclick="press('3')">3</button>
+    <button class="btn" onclick="press('4')">4</button>
+    <button class="btn" onclick="press('5')">5</button>
+    <button class="btn" onclick="press('6')">6</button>
+    <button class="btn" onclick="press('7')">7</button>
+    <button class="btn" onclick="press('8')">8</button>
+    <button class="btn" onclick="press('9')">9</button>
+    <button class="btn" onclick="press('0')">0</button>
+    <button class="btn" onclick="backspace()">⌫</button>
+    <button class="btn" onclick="submitPIN()">✔</button>
+  </div>
+
+  <div class="actions">You’ll use this PIN to protect your wallet</div>
+
+  <script>
+    let pin = '';
+
+    function press(num) {
+      if (pin.length < 4) {
+        pin += num;
+        updateDots();
+      }
+    }
+
+    function backspace() {
+      pin = pin.slice(0, -1);
+      updateDots();
+    }
+
+    function updateDots() {
+      for (let i = 1; i <= 4; i++) {
+        const dot = document.getElementById(`dot${i}`);
+        dot.className = pin.length >= i ? 'dot filled' : 'dot';
+      }
+    }
+
+    function submitPIN() {
+      if (pin.length === 4) {
+        fetch('/set-pin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin })
+        }).then(res => res.text()).then(msg => {
+          alert(msg);
+          location.href = '/main';
+        });
+      } else {
+        alert('Please enter a 4-digit PIN');
+      }
+    }
+
+    // Load user name
+    fetch('/user-profile')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('userName').textContent = data.name?.split(' ')[0] || 'User';
+      });
+  </script>
+</body>
+</html>
