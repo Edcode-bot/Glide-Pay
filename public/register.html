@@ -60,7 +60,7 @@
     <a onclick="history.back()" class="back">← Back</a>
     <h2>Create Account</h2>
     <p>Simplify your crypto payments with us</p>
-    <form method="POST" action="/register">
+    <form id="registerForm" method="POST" action="/register">
       <input type="text" name="name" placeholder="Full Name" required>
       <input type="email" name="email" placeholder="Email Address" required>
       <input type="password" name="password" placeholder="Password" required>
@@ -68,11 +68,52 @@
         <input type="checkbox" id="terms" required>
         <label for="terms">Accept <a href="https://axeapp.io/terms" target="_blank">Terms and Conditions</a></label>
       </div>
+      <div id="errorMessage" style="color: #ff4444; margin: 10px 0; display: none;"></div>
       <button type="submit">Create Account</button>
     </form>
     <div class="link">
       Already have an account? <a href="/login">Login</a>
     </div>
   </div>
+
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorDiv = document.getElementById('errorMessage');
+      errorDiv.style.display = 'none';
+      
+      try {
+        const formData = new FormData(e.target);
+        const response = await fetch('/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: formData.get('name'),
+            email: formData.get('email'),
+            password: formData.get('password')
+          })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+          errorDiv.textContent = data.details || data.error || 'Registration failed';
+          errorDiv.style.display = 'block';
+          return;
+        }
+
+        // Registration successful
+        if (data.redirect) {
+          window.location.href = data.redirect;
+        }
+      } catch (err) {
+        console.error('Registration error:', err);
+        errorDiv.textContent = 'An error occurred during registration. Please try again.';
+        errorDiv.style.display = 'block';
+      }
+    });
+  </script>
 </body>
 </html>

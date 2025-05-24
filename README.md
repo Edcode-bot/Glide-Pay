@@ -79,4 +79,4 @@ Open `http://localhost:3000` in your browser
 
 This project is proprietary software. See the [LICENSE](LICENSE) file for details.
 
-© 2024 GlidePay. All rights reserved. 
+© 2025 GlidePay. All rights reserved. 

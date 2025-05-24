@@ -91,16 +91,63 @@ app.get('/user-info', async (req, res) => {
 // AUTH
 app.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
+  
+  // Input validation
+  if (!name || !email || !password) {
+    return res.status(400).json({ 
+      error: 'Missing required fields',
+      details: {
+        name: !name ? 'Name is required' : null,
+        email: !email ? 'Email is required' : null,
+        password: !password ? 'Password is required' : null
+      }
+    });
+  }
+
   try {
+    // Check for existing user
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.send('User already exists.');
+    if (existingUser) {
+      return res.status(409).json({ 
+        error: 'User already exists',
+        details: 'An account with this email already exists'
+      });
+    }
+
+    // Create new user
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ name, email, password: hashedPassword });
+    const newUser = new User({ 
+      name, 
+      email, 
+      password: hashedPassword 
+    });
+
     await newUser.save();
-    res.send('Registration successful.');
+    
+    // Set session and return success
+    req.session.userId = newUser._id;
+    req.session.seenWelcome = false;
+    return res.status(201).json({ 
+      message: 'Registration successful',
+      redirect: '/welcome'
+    });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Registration failed.');
+    console.error('Registration error:', err);
+    
+    // Handle mongoose validation errors
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({
+        error: 'Validation error',
+        details: Object.values(err.errors).map(e => e.message)
+      });
+    }
+
+    // Handle other errors
+    return res.status(500).json({
+      error: 'Registration failed',
+      details: 'An internal server error occurred'
+    });
   }
 });
 
