@@ -92,8 +92,11 @@ app.get('/user-info', async (req, res) => {
 app.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
   
+  console.log('Registration attempt for email:', email);
+  
   // Input validation
   if (!name || !email || !password) {
+    console.log('Missing required fields:', { name: !name, email: !email, password: !password });
     return res.status(400).json({ 
       error: 'Missing required fields',
       details: {
@@ -108,6 +111,7 @@ app.post('/register', async (req, res) => {
     // Check for existing user
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      console.log('User already exists with email:', email);
       return res.status(409).json({ 
         error: 'User already exists',
         details: 'An account with this email already exists'
@@ -122,24 +126,39 @@ app.post('/register', async (req, res) => {
       password: hashedPassword 
     });
 
+    console.log('Attempting to save new user:', { email, name });
     await newUser.save();
     
     // Set session and return success
     req.session.userId = newUser._id;
     req.session.seenWelcome = false;
+    console.log('User registered successfully:', { email, userId: newUser._id });
     return res.status(201).json({ 
       message: 'Registration successful',
       redirect: '/welcome'
     });
 
   } catch (err) {
-    console.error('Registration error:', err);
+    console.error('Registration error details:', {
+      error: err.message,
+      stack: err.stack,
+      name: err.name,
+      code: err.code
+    });
     
     // Handle mongoose validation errors
     if (err.name === 'ValidationError') {
       return res.status(400).json({
         error: 'Validation error',
         details: Object.values(err.errors).map(e => e.message)
+      });
+    }
+
+    // Handle MongoDB duplicate key errors
+    if (err.code === 11000) {
+      return res.status(409).json({
+        error: 'User already exists',
+        details: 'An account with this email already exists'
       });
     }
 
